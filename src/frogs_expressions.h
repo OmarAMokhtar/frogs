@@ -118,6 +118,22 @@ template<typename A, typename B, \
          template<class...> class Exp1> \
 constexpr Name##VV<Exp0<A,B>,Exp1<C,D>> operator Opr(Exp0<A,B> a, Exp1<C,D> b) \
 { return {a, b}; } \
+template<typename A, typename B, \
+         template<class...> class Exp0, \
+         typename T> \
+constexpr Name##VV<Exp0<A,B>,Const<T>> operator Opr(Exp0<A,B> a, T b) \
+{ return {a, Const{b}}; } \
+template<typename A, typename B, \
+         template<class...> class Exp0, \
+         typename T> \
+constexpr Name##VV<Const<T>,Exp0<A,B>> operator Opr(T a, Exp0<A,B> b) \
+{ return {Const{a}, b}; } \
+template<typename T0, typename T1> \
+constexpr Name##VP<Const<T0>,Var<T1>> operator Opr(T0 a, Var<T1>& b) \
+{ return {Const{a}, &b}; } \
+template<typename T0, typename T1> \
+constexpr Name##PV<Var<T0>,Const<T1>> operator Opr(Var<T0>& a, T1 b) \
+{ return {&a, Const{b}}; } \
 
 DECL_OPR_2(Add,+)
 DECL_OPR_2(Sub,-)
