@@ -5,6 +5,8 @@
 #include <iostream>
 #include <string>
 
+#include "frogs_constants.h"
+
 namespace frogs
 {
 
@@ -12,6 +14,7 @@ namespace frogs
 
 using Integer = unsigned long long;
 using Real = long double;
+using str = std::string;
 
 /* The macros that helps build classes */
 
@@ -91,9 +94,15 @@ public: \
     friend constexpr bool operator>=(Self a, Self b) { return {a.m_value >= b.m_value}; } \
     friend constexpr bool operator<(Self a, Self b) { return {a.m_value < b.m_value}; } \
     friend constexpr bool operator<=(Self a, Self b) { return {a.m_value <= b.m_value}; } \
+    friend constexpr Self Abs(Self v) { return (v.m_value < 0) ? -v : v; } \
+    str toString() { \
+        str s = std::to_string(m_value); \
+        s += " " #String; \
+        return s; \
+    } \
     PublicDecl \
     friend std::ostream &operator<<(std::ostream &output, ClassName obj) { \
-        output << obj.m_value << " " << #String; \
+        output << obj.toString(); \
         return output; \
     } \
 };
@@ -110,6 +119,7 @@ DECL_FWD(Acceleration)
 DECL_FWD(Mass)
 DECL_FWD(Force)
 DECL_FWD(Area)
+DECL_FWD(Angle)
 
 /* All class definitions */
 
