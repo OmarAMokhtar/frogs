@@ -1,87 +1,252 @@
-#include <string>
+#ifndef _FROGS_PHYSICAL_TYPES_H
+#define _FROGS_PHYSICAL_TYPES_H
+
+#include <cstdint>
 #include <iostream>
+#include <string>
 
-#include "frogs.h"
+#include "frogs_constants.h"
 
-using namespace std;
-using namespace frogs;
-
-int main()
+namespace frogs
 {
-    // Using the physical units
-    auto d = 20_km;
-    auto t = 30_minutes;
-    auto v = d/t;
-    
-    // Now v is distance / time so it's velocity. Let's see what will be printed.
-    cout << v << endl;
-    
-    // You can also get that speed in different units. This just returns a double.
-    cout << "in miles per hour " << v.toMilesPerHour() << endl;
-    cout << "in km per hour " << v.toKilometersPerHour() << endl;
 
-    // Since v is a velocity, it should be ok to compare it against other velocities.
-    if (v > 39.9_kmph && v < 40.1_kmph)
-        cout << "Yes it's almost " << 40_kmph << endl;
-    else
-        cout << "Wrong expected velocity" << endl;
+/* The primitive types */
 
-    // But it shouldn't be ok to compare it against other units.
-    // The following part should not compile.
-#if 0
-    if (v > 50_kg)
-        cout << "We just compared mass to velocity" << endl;
-#endif
+using Integer = unsigned long long;
+using Real = long double;
+using str = std::string;
 
-    // So v is d/t but only the value of d and t at that time.
-    // If d or t changed their values, v will not be affected.
-    // But here's how to do that. Just declare them as a Var:
+/* The macros that helps build classes */
 
-    auto my_dist_1 = Var{10_m};
-    auto my_time_1 = Var{1000_msec};
+#define DECL_UNIT(P, Unit, Getter, Scale) \
+    friend constexpr Self operator""##Unit(Integer v); \
+    friend constexpr Self operator""##Unit(Real v); \
+    private: static constexpr Real convFrom##Unit = Scale; \
+    public: constexpr Real Getter() const { return m_value / (convFrom##Unit); } \
 
-    auto my_dist_2 = Var{90_m};
-    auto my_time_2 = Var{1500_msec};
+#define IMPL_UNIT(ClassName, Unit) \
+    constexpr ClassName operator""##Unit(Integer v) { return {v * (ClassName::convFrom##Unit)}; } \
+    constexpr ClassName operator""##Unit(Real v) { return {v * (ClassName::convFrom##Unit)}; } \
 
-    auto speed = (my_dist_2 - my_dist_1) / (my_time_2 - my_time_1);
+#define DECL_CONV(Result, ClassA, Opr, ClassB) \
+    friend constexpr Result operator Opr(ClassA a, ClassB b); \
 
-    // Now of course the speed is 160 meters per second. Let's
-    // evaluate that expression and see. Since speed now is an
-    // expression and not just a value, use the dollar sign:
-    cout << "First speed: " << $(speed) << endl;
+#define IMPL_CONV(Result, ClassA, UnitA, Opr, ClassB, UnitB) \
+    constexpr Result operator Opr(ClassA a, ClassB b) { return {a.UnitA() Opr b.UnitB()}; } \
 
-    // So what happens if we change any of these variables?
-    my_dist_2 += 500_cm;
-    cout << "Second speed: " << $(speed) << endl;
+#define DECL_CONV_ADD(Result, ClassA, ClassB) \
+    DECL_CONV(Result, ClassA, +, ClassB) \
+    DECL_CONV(Result, ClassB, +, ClassA)
 
-    // We could still use the coversion functions here too.
-    // Just with the dollar sign:
-    cout << "Second speed in mph: " << $(speed).toMilesPerHour() << endl;
+#define IMPL_CONV_ADD(Result, ClassA, UnitA, ClassB, UnitB) \
+    IMPL_CONV(Result, ClassA, UnitA, +, ClassB, UnitB) \
+    IMPL_CONV(Result, ClassB, UnitB, +, ClassA, UnitA)
 
-    // We can even use one expression inside another:
-    // This will always ensure that the value of speedX2 is just
-    // double that of speed. Any change will reflect.
-    auto speedX2 = speed * 2.0;
-    my_dist_2 = 2.5_km;
-    cout << "Third speed: " << $(speed) << endl;
-    cout << "Third speedX2: " << $(speedX2) << endl;
+#define DECL_CONV_SUB(Result, ClassA, ClassB) \
+    DECL_CONV(Result, ClassA, -, ClassB) \
+    DECL_CONV(Result, ClassB, -, ClassA)
 
-    // That also works if we use other math functions.
-    auto angle = Var{45_deg};
-    auto velo = Var{1_kmph};
-    auto velo_x = velo * Cos(angle);
-    auto velo_y = velo * Sin(angle);
-    cout << "velo(x,y) = " << $(velo_x) << ", " << $(velo_y) << endl;
-    angle += 15_deg;
-    cout << "velo(x,y) = " << $(velo_x) << ", " << $(velo_y) << endl;
+#define IMPL_CONV_SUB(Result, ClassA, UnitA, ClassB, UnitB) \
+    IMPL_CONV(Result, ClassA, UnitA, -, ClassB, UnitB) \
+    IMPL_CONV(Result, ClassB, UnitB, -, ClassA, UnitA)
 
-    // If we tried to print it without the dollar sign, it'll print
-    // the expression itself and not the current value. Because it
-    // actually saved all the variables and operators used inside
-    // and can convert it to a string if needed.
-    cout << "velo_x() = " << velo_x << endl;
-    cout << "velo_y() = " << velo_y << endl;
-    cout << "speed() = " << speed << endl;
+#define DECL_CONV_MUL(Result, ClassA, ClassB) \
+    DECL_CONV(Result, ClassA, *, ClassB) \
+    DECL_CONV(Result, ClassB, *, ClassA) \
 
-    return 0;
-}
+#define IMPL_CONV_MUL(Result, ClassA, UnitA, ClassB, UnitB) \
+    IMPL_CONV(Result, ClassA, UnitA, *, ClassB, UnitB) \
+    IMPL_CONV(Result, ClassB, UnitB, *, ClassA, UnitA) \
+
+#define DECL_CONV_SQR(Result, Class) \
+    DECL_CONV(Result, Class, *, Class) \
+
+#define IMPL_CONV_SQR(Result, Class, Unit) \
+    IMPL_CONV(Result, Class, Unit, *, Class, Unit) \
+
+#define DECL_CONV_DIV(Result, ClassA, ClassB) \
+    DECL_CONV(Result, ClassA, /, ClassB)
+
+#define IMPL_CONV_DIV(Result, ClassA, UnitA, ClassB, UnitB) \
+    IMPL_CONV(Result, ClassA, UnitA, /, ClassB, UnitB)
+
+#define DECL_CLASS(ClassName, String, PublicDecl) \
+class ClassName { \
+private: \
+    Real m_value; \
+    constexpr ClassName() : m_value(0.0) {} \
+    constexpr ClassName(Real v) : m_value(v) {} \
+public: \
+    using Self = ClassName; \
+    static constexpr Self zero() { return {0.0}; } \
+    static constexpr Self unit() { return {1.0}; } \
+    constexpr Self& operator+=(Self a) { m_value += a.m_value; return *this; } \
+    constexpr Self& operator-=(Self a) { m_value -= a.m_value; return *this; } \
+    constexpr Self& operator=(Self a) { m_value = a.m_value; return *this; } \
+    friend constexpr Self operator-(Self a) { return {-a.m_value}; } \
+    friend constexpr Self operator+(Self a, Self b) { return {a.m_value + b.m_value}; } \
+    friend constexpr Self operator-(Self a, Self b) { return {a.m_value - b.m_value}; } \
+    friend constexpr Self operator*(Real a, Self b) { return {a * b.m_value}; } \
+    friend constexpr Self operator*(Self a, Real b) { return {a.m_value * b}; } \
+    friend constexpr Self operator/(Self a, Real b) { return {a.m_value / b}; } \
+    friend constexpr Real operator/(Self a, Self b) { return {a.m_value / b.m_value}; } \
+    friend constexpr bool operator==(Self a, Self b) { return {a.m_value == b.m_value}; } \
+    friend constexpr bool operator!=(Self a, Self b) { return {a.m_value != b.m_value}; } \
+    friend constexpr bool operator>(Self a, Self b) { return {a.m_value > b.m_value}; } \
+    friend constexpr bool operator>=(Self a, Self b) { return {a.m_value >= b.m_value}; } \
+    friend constexpr bool operator<(Self a, Self b) { return {a.m_value < b.m_value}; } \
+    friend constexpr bool operator<=(Self a, Self b) { return {a.m_value <= b.m_value}; } \
+    friend constexpr Self Abs(Self v) { return (v.m_value < 0) ? -v : v; } \
+    str toString() { \
+        str s = std::to_string(m_value); \
+        s += " " #String; \
+        return s; \
+    } \
+    PublicDecl \
+    friend std::ostream &operator<<(std::ostream &output, ClassName obj) { \
+        output << obj.toString(); \
+        return output; \
+    } \
+};
+
+#define DECL_FWD(ClassName) \
+class ClassName; \
+
+/* All forward declarations */
+
+DECL_FWD(Distance)
+DECL_FWD(Time)
+DECL_FWD(Velocity)
+DECL_FWD(Acceleration)
+DECL_FWD(Mass)
+DECL_FWD(Force)
+DECL_FWD(Area)
+DECL_FWD(Angle)
+
+/* All class definitions */
+
+DECL_CLASS( Distance,
+            meters,
+            DECL_UNIT(Distance, _m,     toMeters,       1.0)
+            DECL_UNIT(Distance, _cm,    toCentimeters,  1.0e-2)
+            DECL_UNIT(Distance, _mm,    toMillimeters,  1.0e-3)
+            DECL_UNIT(Distance, _um,    toMicrometers,  1.0e-6)
+            DECL_UNIT(Distance, _nm,    toNanometers,   1.0e-9)
+            DECL_UNIT(Distance, _km,    toKilometers,   1.0e+3)
+            DECL_UNIT(Distance, _inch,  toInches,       0.0254)
+            DECL_UNIT(Distance, _ft,    toFeet,         0.3048)
+            DECL_UNIT(Distance, _miles, toMiles,        1609.344)
+            DECL_CONV_DIV(Distance, Area, Distance) )
+
+DECL_CLASS( Time,
+            seconds,
+            DECL_UNIT(Time, _hours,   toHours,         3600.0)
+            DECL_UNIT(Time, _minutes, toMinutes,       60.0)
+            DECL_UNIT(Time, _sec,     toSeconds,       1.0e+0)
+            DECL_UNIT(Time, _msec,    toMilliseconds,  1.0e-3)
+            DECL_UNIT(Time, _usec,    toMicroseconds,  1.0e-6)
+            DECL_UNIT(Time, _nsec,    toNanoseconds,   1.0e-9) )
+
+DECL_CLASS( Velocity,
+            m/s,
+            DECL_UNIT(Velocity, _kmph, toKilometersPerHour,  1.0/3.6)
+            DECL_UNIT(Velocity, _mph,  toMilesPerHour,       0.44704)
+            DECL_UNIT(Velocity, _mps,  toMetersPerSecond,    1.0e+0)
+            DECL_CONV_DIV(Velocity, Distance, Time) )
+
+DECL_CLASS( Acceleration,
+            m/s2,
+            DECL_UNIT(Acceleration, _mps2,  toMetersPerSecond2,      1.0e+0)
+            DECL_UNIT(Acceleration, _mmps2, toMillimetersPerSecond2, 1.0e-3)
+            DECL_UNIT(Acceleration, _umps2, toMicrometersPerSecond2, 1.0e-6)
+            DECL_UNIT(Acceleration, _nmps2, toNanometersPerSecond2,  1.0e-9)
+            DECL_CONV_DIV(Acceleration, Velocity, Time) )
+
+DECL_CLASS( Mass,
+            kg,
+            DECL_UNIT(Mass, _kg, toKilograms,  1.0e+3)
+            DECL_UNIT(Mass, _g,  toGrams,      1.0e+0)
+            DECL_UNIT(Mass, _mg, toMilligrams, 1.0e-3)
+            DECL_UNIT(Mass, _ug, toMicrograms, 1.0e-6)
+            DECL_UNIT(Mass, _ng, toNanograms,  1.0e-9)
+            DECL_UNIT(Mass, _lb, toPounds,     453.59)
+            DECL_UNIT(Mass, _oz, toOunces,     28.350) )
+
+DECL_CLASS( Force,
+            N,
+            DECL_UNIT(Force, _N, toNewtons, 1.0e+0)
+            DECL_CONV_MUL(Force, Mass, Acceleration) )
+
+DECL_CLASS( Area,
+            m2,
+            DECL_UNIT(Area, _km2, toKilometers2,  1.0e+6)
+            DECL_UNIT(Area, _m2,  toMeters2,      1.0e+0)
+            DECL_UNIT(Area, _cm2, toCentimeters2, 1.0e-4)
+            DECL_UNIT(Area, _mm2, toMillimeters2, 1.0e-6)
+            DECL_UNIT(Area, _um2, toMicrometers2, 1.0e-12)
+            DECL_UNIT(Area, _nm2, toNanometers2,  1.0e-18)
+            DECL_CONV_SQR(Area, Distance) )
+
+DECL_CLASS( Energy,
+            J,
+            DECL_UNIT(Energy, _J,    toJoules,       1.0e+0)
+            DECL_UNIT(Energy, _kJ,   toKilojoules,   1.0e+3)
+            DECL_UNIT(Energy, _MJ,   toMegajoules,   1.0e+6)
+            DECL_UNIT(Energy, _GJ,   toGigajoules,   1.0e+9)
+            DECL_UNIT(Energy, _mJ,   toMillijoules,  1.0e-3)
+            DECL_UNIT(Energy, _uJ,   toMicrojoules,  1.0e-6)
+            DECL_UNIT(Energy, _nJ,   toNanojoules,   1.0e-9)
+            DECL_UNIT(Energy, _kWh,  toKilowattHour, 3.6e+6)
+            DECL_UNIT(Energy, _cal,  toCalories,     4.184e+0)
+            DECL_UNIT(Energy, _kcal, toKilocalories, 4.184e+3) )
+
+/* All implementations */
+
+IMPL_UNIT(Distance, _m)
+IMPL_UNIT(Distance, _cm)
+IMPL_UNIT(Distance, _mm)
+IMPL_UNIT(Distance, _um)
+IMPL_UNIT(Distance, _nm)
+IMPL_UNIT(Distance, _km)
+IMPL_UNIT(Distance, _inch)
+IMPL_UNIT(Distance, _ft)
+IMPL_UNIT(Distance, _miles)
+IMPL_CONV_DIV(Distance, Area, toMeters2, Distance, toMeters)
+
+IMPL_UNIT(Time, _hours)
+IMPL_UNIT(Time, _minutes)
+IMPL_UNIT(Time, _sec)
+IMPL_UNIT(Time, _msec)
+IMPL_UNIT(Time, _usec)
+IMPL_UNIT(Time, _nsec)
+
+IMPL_UNIT(Velocity, _kmph)
+IMPL_UNIT(Velocity, _mph)
+IMPL_UNIT(Velocity, _mps)
+IMPL_CONV_DIV(Velocity, Distance, toMeters, Time, toSeconds)
+            
+IMPL_UNIT(Acceleration, _mps2)
+IMPL_UNIT(Acceleration, _mmps2)
+IMPL_UNIT(Acceleration, _umps2)
+IMPL_UNIT(Acceleration, _nmps2)
+IMPL_CONV_DIV(Acceleration, Velocity, toMetersPerSecond, Time, toSeconds)
+
+IMPL_UNIT(Mass, _kg)
+IMPL_UNIT(Mass, _g)
+IMPL_UNIT(Mass, _mg)
+IMPL_UNIT(Mass, _ug)
+IMPL_UNIT(Mass, _ng)
+IMPL_UNIT(Mass, _lb)
+IMPL_UNIT(Mass, _oz)
+
+IMPL_UNIT(Area, _km2)
+IMPL_UNIT(Area, _m2)
+IMPL_UNIT(Area, _cm2)
+IMPL_UNIT(Area, _mm2)
+IMPL_UNIT(Area, _um2)
+IMPL_UNIT(Area, _nm2)
+IMPL_CONV_SQR(Area, Distance, toMeters)
+
+} // namespace frogs
+
+#endif // _FROGS_PHYSICAL_TYPES_H
