@@ -54,5 +54,10 @@ int main()
     my_dist_2 += 500_cm;
     cout << "Second speed: " << $(speed) << endl;
 
+    // We could still use the coversion functions here too.
+    // Just with the dollar sign:
+    cout << "Second speed in mph: " << $(speed).toMilesPerHour() << endl;
+    
+
     return 0;
 }
