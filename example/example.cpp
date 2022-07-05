@@ -15,6 +15,10 @@ int main()
     
     // Now v is distance / time so it's velocity. Let's see what will be printed.
     cout << v << endl;
+    
+    // You can also get that speed in different units. This just returns a double.
+    cout << "in miles per hour " << v.toMilesPerHour() << endl;
+    cout << "in km per hour " << v.toKilometersPerHour() << endl;
 
     // Since v is a velocity, it should be ok to compare it against other velocities.
     if (v > 39.9_kmph && v < 40.1_kmph)
