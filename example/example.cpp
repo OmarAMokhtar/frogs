@@ -57,7 +57,14 @@ int main()
     // We could still use the coversion functions here too.
     // Just with the dollar sign:
     cout << "Second speed in mph: " << $(speed).toMilesPerHour() << endl;
-    
+
+    // We can even use one expression inside another:
+    // This will always ensure that the value of speedX2 is just
+    // double that of speed. Any change will reflect.
+    auto speedX2 = speed * 2.0;
+    my_dist_2 = 2.5_km;
+    cout << "Third speed: " << $(speed) << endl;
+    cout << "Third speedX2: " << $(speedX2) << endl;
 
     return 0;
 }
