@@ -80,6 +80,7 @@ public: \
         output << obj.toString(); \
         return output; \
     } \
+    constexpr Exp* arg() { return m_a; } \
 }; \
 template<class Exp, class Dummy> \
 class ClassName##V { \
@@ -98,6 +99,7 @@ public: \
         output << obj.toString(); \
         return output; \
     } \
+    constexpr Exp& arg() { return m_a; } \
 }; \
 
 #define DECL_OPR_CLASS_2(ClassName, Func, Str1, Str2, Str3) \
@@ -121,6 +123,8 @@ public: \
         output << obj.toString(); \
         return output; \
     } \
+    constexpr Exp0& first() { return m_a; } \
+    constexpr Exp1* second() { return m_b; } \
 }; \
 template<class Exp0, class Exp1> \
 class ClassName##PV { \
@@ -142,6 +146,8 @@ public: \
         output << obj.toString(); \
         return output; \
     } \
+    constexpr Exp0* first() { return m_a; } \
+    constexpr Exp1& second() { return m_b; } \
 }; \
 template<class Exp0, class Exp1> \
 class ClassName##VV { \
@@ -163,6 +169,8 @@ public: \
         output << obj.toString(); \
         return output; \
     } \
+    constexpr Exp0& first() { return m_a; } \
+    constexpr Exp1& second() { return m_b; } \
 }; \
 template<class Exp0, class Exp1> \
 class ClassName##PP { \
@@ -184,6 +192,8 @@ public: \
         output << obj.toString(); \
         return output; \
     } \
+    constexpr Exp0* first() { return m_a; } \
+    constexpr Exp1* second() { return m_b; } \
 }; \
 
 #define DECL_OPR_2(Name, Opr) \
