@@ -66,5 +66,22 @@ int main()
     cout << "Third speed: " << $(speed) << endl;
     cout << "Third speedX2: " << $(speedX2) << endl;
 
+    // That also works if we use other math functions.
+    auto angle = Var{45_deg};
+    auto velo = Var{1_kmph};
+    auto velo_x = velo * Cos(angle);
+    auto velo_y = velo * Sin(angle);
+    cout << "velo(x,y) = " << $(velo_x) << ", " << $(velo_y) << endl;
+    angle += 15_deg;
+    cout << "velo(x,y) = " << $(velo_x) << ", " << $(velo_y) << endl;
+
+    // If we tried to print it without the dollar sign, it'll print
+    // the expression itself and not the current value. Because it
+    // actually saved all the variables and operators used inside
+    // and can convert it to a string if needed.
+    cout << "velo_x() = " << velo_x << endl;
+    cout << "velo_y() = " << velo_y << endl;
+    cout << "speed() = " << speed << endl;
+
     return 0;
 }
