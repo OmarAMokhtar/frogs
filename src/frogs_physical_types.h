@@ -78,6 +78,8 @@ private: \
     constexpr ClassName(Real v) : m_value(v) {} \
 public: \
     using Self = ClassName; \
+    static constexpr Self zero() { return {0.0}; } \
+    static constexpr Self unit() { return {1.0}; } \
     constexpr Self& operator+=(Self a) { m_value += a.m_value; return *this; } \
     constexpr Self& operator-=(Self a) { m_value -= a.m_value; return *this; } \
     constexpr Self& operator=(Self a) { m_value = a.m_value; return *this; } \
