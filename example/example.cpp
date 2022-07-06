@@ -37,11 +37,11 @@ int main()
     // If d or t changed their values, v will not be affected.
     // But here's how to do that. Just declare them as a Var:
 
-    auto my_dist_1 = Var{10_m};
-    auto my_time_1 = Var{1000_msec};
+    auto my_dist_1 = Var{10_m, "x"};
+    auto my_time_1 = Var{1000_msec, "y"};
 
-    auto my_dist_2 = Var{90_m};
-    auto my_time_2 = Var{1500_msec};
+    auto my_dist_2 = Var{90_m, "z"};
+    auto my_time_2 = Var{1500_msec, "w"};
 
     auto speed = (my_dist_2 - my_dist_1) / (my_time_2 - my_time_1);
 
@@ -69,8 +69,8 @@ int main()
     // That also works if we use other math functions.
     auto angle = Var{45_deg};
     auto velo = Var{1_kmph};
-    auto velo_x = velo * Cos(angle);
-    auto velo_y = velo * Sin(angle);
+    auto velo_x = velo * Cos(angle) * 2.0;
+    auto velo_y = velo * Sin(angle) * 2.0;
     cout << "velo(x,y) = " << $(velo_x) << ", " << $(velo_y) << endl;
     angle += 15_deg;
     cout << "velo(x,y) = " << $(velo_x) << ", " << $(velo_y) << endl;
@@ -82,6 +82,22 @@ int main()
     cout << "velo_x() = " << velo_x << endl;
     cout << "velo_y() = " << velo_y << endl;
     cout << "speed() = " << speed << endl;
+
+    // You could get the derivative of an expression.
+    // But make sure it has only one variable.
+    // This is currently a limitation as the library
+    // now will consider all variables the same.
+    auto x = Var{5.0};
+    // Here's the original expression
+    auto func = x * x * x + 2.0 * x + 5.0;
+    // Here's its first derivative
+    auto func_diff = Diff(func);
+    // Printing the expression and its derivative
+    cout << func << endl;
+    cout << func_diff << endl;
+    // Printing their values now (at x = 5.0)
+    cout << $(func) << endl;
+    cout << $(func_diff) << endl;
 
     return 0;
 }
