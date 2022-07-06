@@ -57,13 +57,13 @@ public:
 
 private:
     static constexpr Real convFrom_rad = 1.0;
-    static constexpr Real convFrom_deg = 180.0/PI;
+    static constexpr Real convFrom_deg = PI/180.0;
 
 public:
     str toString()
     {
         str s = std::to_string(m_value);
-        s += " degrees";
+        s += " rad";
         return s;
     }
 
