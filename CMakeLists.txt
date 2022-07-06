@@ -4,6 +4,7 @@ project(FrogsTestProj)
 
 add_executable(FrogsTest
     example/example.cpp
+    src/frogs_expressions.cpp
 )
 
 target_include_directories(FrogsTest
