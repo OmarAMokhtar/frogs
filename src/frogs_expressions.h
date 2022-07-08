@@ -20,13 +20,7 @@ protected:
 public:
     constexpr Const(T v) : m_val{v} {}
     constexpr T val() { return m_val; }
-    str toString()
-    {
-        str s = "Const{";
-        s += cov2str(m_val);
-        s += "}";
-        return s;
-    }
+    Str toString() { return conv2str(m_val); }
 };
 
 template<typename T, class Dummy = DummyClass>
@@ -36,7 +30,7 @@ public:
     constexpr ZeroExp() {}
     constexpr ZeroExp(T v) {}
     constexpr T val() { return ZeroExp(T{}); }
-    str toString() { return "0"; }
+    Str toString() { return "0"; }
 };
 
 extern Integer ___numVars;
@@ -46,7 +40,7 @@ class Var
 {
 protected:
     T m_val;
-    str m_name;
+    Str m_name;
 
 public:
     Var(T v) : m_val{v}
@@ -55,7 +49,7 @@ public:
         m_name += std::to_string(++___numVars);
     }
 
-    Var(T v, str name) : m_val{v}, m_name{name} {}
+    Var(T v, Str name) : m_val{v}, m_name{name} {}
 
     Var<T>& operator=(T v)      { m_val =  v; return *this; }
     Var<T>& operator+=(T v)     { m_val += v; return *this; }
@@ -71,7 +65,7 @@ public:
     bool operator!=(T v) { return m_val != v; }
 
     constexpr T val() { return m_val; }
-    str toString()
+    Str toString()
     {
         return m_name;
     }
@@ -91,9 +85,9 @@ protected: \
 public: \
     constexpr ClassName(Exp a) : m_a{a} {} \
     constexpr auto val() { return Func($(m_a)); } \
-    str toString() { \
-        str s{Str1}; \
-        s += cov2str(m_a); \
+    Str toString() { \
+        Str s{Str1}; \
+        s += conv2str(m_a); \
         s += Str2; \
         return s; \
     } \
@@ -113,11 +107,11 @@ protected: \
 public: \
     constexpr ClassName(Exp0 a, Exp1 b) : m_a{a}, m_b{b} {} \
     constexpr auto val() { return Func($(m_a), $(m_b)); } \
-    str toString() { \
-        str s{Str1}; \
-        s += cov2str(m_a); \
+    Str toString() { \
+        Str s{Str1}; \
+        s += conv2str(m_a); \
         s += Str2; \
-        s += cov2str(m_b); \
+        s += conv2str(m_b); \
         s += Str3; \
         return s; \
     } \
