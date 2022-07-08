@@ -91,8 +91,8 @@ public: \
     friend constexpr bool operator<=(Self a, Self b) { return {a.m_value <= b.m_value}; } \
     friend constexpr Self Abs(Self v) { return Abs(v); } \
     template<typename T> friend constexpr auto Diff(T); \
-    str toString() { \
-        str s = std::to_string(m_value); \
+    Str toString() { \
+        Str s = std::to_string(m_value); \
         s += " " #String; \
         return s; \
     } \
