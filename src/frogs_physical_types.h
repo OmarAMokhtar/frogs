@@ -1,116 +1,11 @@
 #ifndef _FROGS_PHYSICAL_TYPES_H
 #define _FROGS_PHYSICAL_TYPES_H
 
-#include <cstdint>
-#include <iostream>
-#include <string>
-
-#include "frogs_constants.h"
+#include "frogs_types_creator.h"
+#include "frogs_types_fallback.h"
 
 namespace frogs
 {
-
-/* The primitive types */
-
-using Integer = unsigned long long;
-using Real = long double;
-using str = std::string;
-
-/* The macros that helps build classes */
-
-#define DECL_UNIT(P, Unit, Getter, Scale) \
-    friend constexpr Self operator""##Unit(Integer v); \
-    friend constexpr Self operator""##Unit(Real v); \
-    private: static constexpr Real convFrom##Unit = Scale; \
-    public: constexpr Real Getter() const { return m_value / (convFrom##Unit); } \
-
-#define IMPL_UNIT(ClassName, Unit) \
-    constexpr ClassName operator""##Unit(Integer v) { return {v * (ClassName::convFrom##Unit)}; } \
-    constexpr ClassName operator""##Unit(Real v) { return {v * (ClassName::convFrom##Unit)}; } \
-
-#define DECL_CONV(Result, ClassA, Opr, ClassB) \
-    friend constexpr Result operator Opr(ClassA a, ClassB b); \
-
-#define IMPL_CONV(Result, ClassA, UnitA, Opr, ClassB, UnitB) \
-    constexpr Result operator Opr(ClassA a, ClassB b) { return {a.UnitA() Opr b.UnitB()}; } \
-
-#define DECL_CONV_ADD(Result, ClassA, ClassB) \
-    DECL_CONV(Result, ClassA, +, ClassB) \
-    DECL_CONV(Result, ClassB, +, ClassA)
-
-#define IMPL_CONV_ADD(Result, ClassA, UnitA, ClassB, UnitB) \
-    IMPL_CONV(Result, ClassA, UnitA, +, ClassB, UnitB) \
-    IMPL_CONV(Result, ClassB, UnitB, +, ClassA, UnitA)
-
-#define DECL_CONV_SUB(Result, ClassA, ClassB) \
-    DECL_CONV(Result, ClassA, -, ClassB) \
-    DECL_CONV(Result, ClassB, -, ClassA)
-
-#define IMPL_CONV_SUB(Result, ClassA, UnitA, ClassB, UnitB) \
-    IMPL_CONV(Result, ClassA, UnitA, -, ClassB, UnitB) \
-    IMPL_CONV(Result, ClassB, UnitB, -, ClassA, UnitA)
-
-#define DECL_CONV_MUL(Result, ClassA, ClassB) \
-    DECL_CONV(Result, ClassA, *, ClassB) \
-    DECL_CONV(Result, ClassB, *, ClassA) \
-
-#define IMPL_CONV_MUL(Result, ClassA, UnitA, ClassB, UnitB) \
-    IMPL_CONV(Result, ClassA, UnitA, *, ClassB, UnitB) \
-    IMPL_CONV(Result, ClassB, UnitB, *, ClassA, UnitA) \
-
-#define DECL_CONV_SQR(Result, Class) \
-    DECL_CONV(Result, Class, *, Class) \
-
-#define IMPL_CONV_SQR(Result, Class, Unit) \
-    IMPL_CONV(Result, Class, Unit, *, Class, Unit) \
-
-#define DECL_CONV_DIV(Result, ClassA, ClassB) \
-    DECL_CONV(Result, ClassA, /, ClassB)
-
-#define IMPL_CONV_DIV(Result, ClassA, UnitA, ClassB, UnitB) \
-    IMPL_CONV(Result, ClassA, UnitA, /, ClassB, UnitB)
-
-#define DECL_CLASS(ClassName, String, PublicDecl) \
-class ClassName { \
-private: \
-    Real m_value; \
-    constexpr ClassName() : m_value(0.0) {} \
-    constexpr ClassName(Real v) : m_value(v) {} \
-public: \
-    using Self = ClassName; \
-    static constexpr Self zero() { return {0.0}; } \
-    static constexpr Self unit() { return {1.0}; } \
-    constexpr Self& operator+=(Self a) { m_value += a.m_value; return *this; } \
-    constexpr Self& operator-=(Self a) { m_value -= a.m_value; return *this; } \
-    constexpr Self& operator=(Self a) { m_value = a.m_value; return *this; } \
-    friend constexpr Self operator-(Self a) { return {-a.m_value}; } \
-    friend constexpr Self operator+(Self a, Self b) { return {a.m_value + b.m_value}; } \
-    friend constexpr Self operator-(Self a, Self b) { return {a.m_value - b.m_value}; } \
-    friend constexpr Self operator*(Real a, Self b) { return {a * b.m_value}; } \
-    friend constexpr Self operator*(Self a, Real b) { return {a.m_value * b}; } \
-    friend constexpr Self operator/(Self a, Real b) { return {a.m_value / b}; } \
-    friend constexpr Real operator/(Self a, Self b) { return {a.m_value / b.m_value}; } \
-    friend constexpr bool operator==(Self a, Self b) { return {a.m_value == b.m_value}; } \
-    friend constexpr bool operator!=(Self a, Self b) { return {a.m_value != b.m_value}; } \
-    friend constexpr bool operator>(Self a, Self b) { return {a.m_value > b.m_value}; } \
-    friend constexpr bool operator>=(Self a, Self b) { return {a.m_value >= b.m_value}; } \
-    friend constexpr bool operator<(Self a, Self b) { return {a.m_value < b.m_value}; } \
-    friend constexpr bool operator<=(Self a, Self b) { return {a.m_value <= b.m_value}; } \
-    friend constexpr Self Abs(Self v) { return (v.m_value < 0) ? -v : v; } \
-    str toString() { \
-        str s = std::to_string(m_value); \
-        s += " " #String; \
-        return s; \
-    } \
-    PublicDecl \
-    friend std::ostream &operator<<(std::ostream &output, ClassName obj) { \
-        output << obj.toString(); \
-        return output; \
-    } \
-};
-
-#define DECL_FWD(ClassName) \
-class ClassName; \
 
 /* All forward declarations */
 
@@ -136,7 +31,9 @@ DECL_CLASS( Distance,
             DECL_UNIT(Distance, _inch,  toInches,       0.0254)
             DECL_UNIT(Distance, _ft,    toFeet,         0.3048)
             DECL_UNIT(Distance, _miles, toMiles,        1609.344)
-            DECL_CONV_DIV(Distance, Area, Distance) )
+            DECL_CONV_DIV(Distance, Area, Distance)
+            DECL_CONV_MUL(Distance, Velocity, Time)
+            friend constexpr Distance Sqrt(Area a); )
 
 DECL_CLASS( Time,
             seconds,
@@ -152,7 +49,8 @@ DECL_CLASS( Velocity,
             DECL_UNIT(Velocity, _kmph, toKilometersPerHour,  1.0/3.6)
             DECL_UNIT(Velocity, _mph,  toMilesPerHour,       0.44704)
             DECL_UNIT(Velocity, _mps,  toMetersPerSecond,    1.0e+0)
-            DECL_CONV_DIV(Velocity, Distance, Time) )
+            DECL_CONV_DIV(Velocity, Distance, Time)
+            DECL_CONV_MUL(Velocity, Acceleration, Time) )
 
 DECL_CLASS( Acceleration,
             m/s2,
@@ -212,6 +110,7 @@ IMPL_UNIT(Distance, _inch)
 IMPL_UNIT(Distance, _ft)
 IMPL_UNIT(Distance, _miles)
 IMPL_CONV_DIV(Distance, Area, toMeters2, Distance, toMeters)
+IMPL_CONV_MUL(Distance, Velocity, toMetersPerSecond, Time, toSeconds)
 
 IMPL_UNIT(Time, _hours)
 IMPL_UNIT(Time, _minutes)
@@ -224,7 +123,8 @@ IMPL_UNIT(Velocity, _kmph)
 IMPL_UNIT(Velocity, _mph)
 IMPL_UNIT(Velocity, _mps)
 IMPL_CONV_DIV(Velocity, Distance, toMeters, Time, toSeconds)
-            
+IMPL_CONV_MUL(Velocity, Acceleration, toMetersPerSecond2, Time, toSeconds)
+
 IMPL_UNIT(Acceleration, _mps2)
 IMPL_UNIT(Acceleration, _mmps2)
 IMPL_UNIT(Acceleration, _umps2)
@@ -246,6 +146,8 @@ IMPL_UNIT(Area, _mm2)
 IMPL_UNIT(Area, _um2)
 IMPL_UNIT(Area, _nm2)
 IMPL_CONV_SQR(Area, Distance, toMeters)
+
+constexpr Distance Sqrt(Area a) { return {sqrt(a.toMeters2())}; }
 
 } // namespace frogs
 
