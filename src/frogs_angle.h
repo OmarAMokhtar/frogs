@@ -63,9 +63,9 @@ private:
     static constexpr Real convFrom_deg = PI/180.0;
 
 public:
-    str toString()
+    Str toString()
     {
-        str s = std::to_string(m_value);
+        Str s = std::to_string(m_value);
         s += " rad";
         return s;
     }
