@@ -20,7 +20,7 @@ int32_t main()
     /* Now the velocity equation should be the first derivative: */
     auto velocity = Diff(distance, t);
 
-    // /* And the acceleration equation is the second derivative: */
+    /* And the acceleration equation is the second derivative: */
     auto acceleration = Diff(velocity, t);
 
     /* Let's print the formulas first: */
