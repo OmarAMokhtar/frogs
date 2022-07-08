@@ -1,5 +1,5 @@
-#ifndef _FROGS___Diff_H
-#define _FROGS___Diff_H
+#ifndef _FROGS_Diff_H
+#define _FROGS_Diff_H
 
 #include <utility>
 #include <cassert>
@@ -173,4 +173,4 @@ constexpr auto Diff(Exp expr, Var<DT>& dt)
 
 } // namespace frogs
 
-#endif // _FROGS___Diff_H
+#endif // _FROGS_Diff_H
