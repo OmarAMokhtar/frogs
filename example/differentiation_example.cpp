@@ -15,7 +15,7 @@ int32_t main()
      */
     auto t = Var{0_sec};
     /* Then the 2nd degree equation: */
-    auto distance = 0.2_mps2*t*t;// + 10_mps*t + 20_m;
+    auto distance = 0.2_mps2*t*t + 10_mps*t + 20_m;
 
     /* Now the velocity equation should be the first derivative: */
     auto velocity = Diff(distance, t);
