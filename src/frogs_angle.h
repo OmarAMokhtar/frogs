@@ -4,23 +4,24 @@
 #include <iostream>
 #include <string>
 #include <math.h>
+#include "frogs_primitives.h"
 #include "frogs_constants.h"
+#include "frogs_physical_types.h"
 
 namespace frogs
 {
-
-using str = std::string;
 
 class Angle
 {
 private:
     Real m_value;
+
+public:
     constexpr Angle() : m_value(0.0) {}
     constexpr Angle(Real v) : m_value(v) {}
 
-public:
     using Self = Angle;
-   
+
     static constexpr Self zero() { return {0.0}; }
     static constexpr Self unit() { return {1.0}; }
 
@@ -41,6 +42,7 @@ public:
     friend constexpr bool operator<(Self a, Self b) { return {a.m_value < b.m_value}; }
     friend constexpr bool operator<=(Self a, Self b) { return {a.m_value <= b.m_value}; }
     friend constexpr Self Abs(Self v) { return (v.m_value < 0) ? -v : v; }
+    friend constexpr Real Sqrt(Self v) { return sqrt(v.m_value); }
     friend constexpr Real Cos(Self v) { return cos(v.m_value); }
     friend constexpr Real Sin(Self v) { return sin(v.m_value); }
     friend constexpr Real Tan(Self v) { return tan(v.m_value); }
@@ -48,6 +50,7 @@ public:
     friend constexpr Self ASin(Real v) { return {asin(v)}; }
     friend constexpr Self ATan(Real v) { return {atan(v)}; }
     friend constexpr Self ATan2(Real a, Real b) { return {atan2(a,b)}; }
+    friend constexpr Self ATan2(Distance a, Distance b);
     friend constexpr Self operator""_deg(Integer v);
     friend constexpr Self operator""_deg(Real v);
     friend constexpr Self operator""_rad(Integer v);
@@ -78,6 +81,8 @@ constexpr Angle operator""_deg(Integer v) { return {v * (Angle::convFrom_deg)}; 
 constexpr Angle operator""_deg(Real v) { return {v * (Angle::convFrom_deg)}; }
 constexpr Angle operator""_rad(Integer v) { return {v * (Angle::convFrom_rad)}; }
 constexpr Angle operator""_rad(Real v) { return {v * (Angle::convFrom_rad)}; }
+
+constexpr Angle ATan2(Distance a, Distance b) { return {atan2(a.toMeters(), b.toMeters())}; }
 
 }
 
