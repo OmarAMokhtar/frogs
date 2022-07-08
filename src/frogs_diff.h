@@ -26,7 +26,7 @@ constexpr Integer Zero(Integer) { return 0; }
 constexpr int One(int) { return 1; }
 constexpr int Zero(int) { return 0; }
 
-/* The simplest __Differentiation rules. Variables become one and
+/* The simplest Differentiation rules. Variables become one and
  * constants become zero.
  */
 
@@ -76,7 +76,7 @@ constexpr auto __Diff(Pos<Exp,DummyClass> expr, Var<DT>& dt)
     return __Diff(expr.arg(),dt);
 }
 
-/* Addition rules in __Differentiation.
+/* Addition rules in Differentiation.
  *
  * if f(x) = g(x) + h(x)
  * then f`(x) = g`(x) + h`(x)
@@ -88,7 +88,7 @@ constexpr auto __Diff(Add<A0,A1> expr, Var<DT>& dt)
     return (__Diff(expr.first(),dt) + __Diff(expr.second(),dt));
 }
 
-/* Subtraction rules in __Differentiation.
+/* Subtraction rules in Differentiation.
  *
  * if f(x) = g(x) - h(x)
  * then f`(x) = g`(x) - h`(x)
@@ -100,7 +100,7 @@ constexpr auto __Diff(Sub<A0,A1> expr, Var<DT>& dt)
     return (__Diff(expr.first(),dt) - __Diff(expr.second(),dt));
 }
 
-/* Multiplication rules in __Differentiation.
+/* Multiplication rules in Differentiation.
  *
  * if f(x) = g(x) * h(x)
  * then f`(x) = g`(x) * h(x) + g(x) * h`(x)
@@ -113,7 +113,7 @@ constexpr auto __Diff(Mul<A0,A1> expr, Var<DT>& dt)
             + (Same(expr.first()) * __Diff(expr.second(),dt)));
 }
 
-/* Division rules in __Differentiation.
+/* Division rules in Differentiation.
  *
  * if f(x) = g(x) / h(x)
  * then f`(x) = ( g`(x) * h(x) - g(x) * h`(x) ) / ( h(x) * h(x) )
@@ -126,7 +126,7 @@ constexpr auto __Diff(Div<A0,A1> expr, Var<DT>& dt)
             / (Same(expr.second()) * Same(expr.second())));
 }
 
-/* Trignometry rules in __Differentiation.
+/* Trignometry rules in Differentiation.
  *
  * if f(x) = Cos(g(x))
  * then f`(x) = Sin(g(x)) * g`(x)
@@ -165,6 +165,10 @@ constexpr auto __Diff(TanExp<Exp,DummyClass> expr, Var<DT>& dt)
     return (__Diff(expr.arg(),dt) / (Cos(Same(expr.arg())) * Cos(Same(expr.arg()))));
 }
 
+/* This is the main Differentiation function. The only difference
+ * between this and the others is that it divides by a unit of the
+ * differentiation variable.
+ */
 template<typename Exp, typename DT>
 constexpr auto Diff(Exp expr, Var<DT>& dt)
 {
