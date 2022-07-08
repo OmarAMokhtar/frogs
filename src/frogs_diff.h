@@ -1,5 +1,5 @@
-#ifndef _FROGS_DIFF_H
-#define _FROGS_DIFF_H
+#ifndef _FROGS___Diff_H
+#define _FROGS___Diff_H
 
 #include <utility>
 #include "frogs_expressions.h"
@@ -10,7 +10,7 @@ namespace frogs
 /* These functions help get a zero or a one value from a certain type.
  * That type could be one of the physical types or a C++ primitive.
  * Either way, one of these functions will match and return a one or
- * a zero. We need them for differentiating a variable and it resolves
+ * a zero. We need them for __Differentiating a variable and it resolves
  * to one or a constant and it resolves to zero.
  */
 
@@ -25,169 +25,147 @@ constexpr Integer Zero(Integer) { return 0; }
 constexpr int One(int) { return 1; }
 constexpr int Zero(int) { return 0; }
 
-/* The simplest differentiation rules. Variables become one and
+/* The simplest __Differentiation rules. Variables become one and
  * constants become zero.
  */
 
 template<typename T>
-constexpr auto Diff(Var<T> expr)
+constexpr auto __Diff(Var<T> expr)
 {
     return Const{One(T{})};
 }
 
 template<typename T>
-constexpr auto Diff(Const<T> expr)
-{
-    return Const{Zero(T{})};
-}
-
-template<typename T>
-constexpr auto Diff(NegP<Var<T>> expr)
-{
-    return Const{One(T{}) * -1};
-}
-
-template<typename Exp>
-constexpr auto Diff(NegV<Exp> expr)
-{
-    return -Diff(expr.arg());
-}
-
-template<typename T>
-constexpr auto Diff(PosP<Var<T>> expr)
+constexpr auto __Diff(Var<T>* expr)
 {
     return Const{One(T{})};
 }
 
-template<typename Exp>
-constexpr auto Diff(PosV<Exp> expr)
+template<typename T>
+constexpr Var<T>& Same(Var<T>* expr)
 {
-    return Diff(expr.arg());
+    return *expr;
 }
 
-/* Addition rules in differentiation.
+template<typename Exp>
+constexpr auto Same(Exp&& expr)
+{
+    return expr;
+}
+
+template<typename T>
+constexpr auto __Diff(Const<T> expr)
+{
+    return ZeroExp<T>{};
+}
+
+template<typename Exp>
+constexpr auto __Diff(Neg<Exp,DummyClass> expr)
+{
+    return Neg{__Diff(expr.arg())};
+}
+
+template<typename Exp>
+constexpr auto __Diff(Pos<Exp,DummyClass> expr)
+{
+    return __Diff(expr.arg());
+}
+
+/* Addition rules in __Differentiation.
  *
  * if f(x) = g(x) + h(x)
  * then f`(x) = g`(x) + h`(x)
  */
 
 template<typename A0, typename A1>
-constexpr auto Diff(AddVV<A0,A1> expr)
+constexpr auto __Diff(Add<A0,A1> expr)
 {
-    return Diff(expr.first()) + Diff(expr.second());
+    return (__Diff(expr.first()) + __Diff(expr.second()));
 }
 
-template<typename A0, typename T>
-constexpr auto Diff(AddVP<A0,Var<T>> expr)
-{
-    return Diff(expr.first()) + Const{One(T{})};
-}
-
-template<typename A1, typename T>
-constexpr auto Diff(AddPV<Var<T>,A1> expr)
-{
-    return Const{One(T{})} + Diff(expr.second());
-}
-
-template<typename T>
-constexpr auto Diff(AddPP<Var<T>,Var<T>> expr)
-{
-    return Const{2 * One(T{})};
-}
-
-/* Subtraction rules in differentiation.
+/* Subtraction rules in __Differentiation.
  *
  * if f(x) = g(x) - h(x)
  * then f`(x) = g`(x) - h`(x)
  */
 
 template<typename A0, typename A1>
-constexpr auto Diff(SubVV<A0,A1> expr)
+constexpr auto __Diff(Sub<A0,A1> expr)
 {
-    return Diff(expr.first()) - Diff(expr.second());
+    return (__Diff(expr.first()) - __Diff(expr.second()));
 }
 
-template<typename A0, typename T>
-constexpr auto Diff(SubVP<A0,Var<T>> expr)
-{
-    return Diff(expr.first()) - Const{One(T{})};
-}
-
-template<typename A1, typename T>
-constexpr auto Diff(SubPV<Var<T>,A1> expr)
-{
-    return Const{One(T{})} - Diff(expr.second());
-}
-
-template<typename A1, typename T>
-constexpr auto Diff(SubPP<Var<T>,Var<T>> expr)
-{
-    return Const{Zero(T{})};
-}
-
-/* Multiplication rules in differentiation.
+/* Multiplication rules in __Differentiation.
  *
  * if f(x) = g(x) * h(x)
  * then f`(x) = g`(x) * h(x) + g(x) * h`(x)
  */
 
 template<typename A0, typename A1>
-constexpr auto Diff(MulVV<A0,A1> expr)
+constexpr auto __Diff(Mul<A0,A1> expr)
 {
-    return Diff(expr.first()) * expr.second() + expr.first() + Diff(expr.second());
+    return ((__Diff(expr.first()) * Same(expr.second()))
+            + (Same(expr.first()) * __Diff(expr.second())));
 }
 
-template<typename A0, typename T>
-constexpr auto Diff(MulVP<A0,Var<T>> expr)
-{
-    return MulVP{Diff(expr.first()), expr.second()} + expr.first();
-}
-
-template<typename A1, typename T>
-constexpr auto Diff(MulPV<Var<T>,A1> expr)
-{
-    return MulPV{expr.first(), Diff(expr.second())} + expr.second();
-}
-
-template<typename T>
-constexpr auto Diff(MulPP<Var<T>,Var<T>> expr)
-{
-    return MulVP{Const{One(T{}) * 2}, expr.first()};
-}
-
-/* Division rules in differentiation.
+/* Division rules in __Differentiation.
  *
  * if f(x) = g(x) / h(x)
  * then f`(x) = ( g`(x) * h(x) - g(x) * h`(x) ) / ( h(x) * h(x) )
  */
 template<typename A0, typename A1>
-constexpr auto Diff(DivVV<A0,A1> expr)
+constexpr auto __Diff(Div<A0,A1> expr)
 {
-    return ((Diff(expr.first()) * expr.second())
-                - (expr.first() * Diff(expr.second())))
-            / (expr.second() * expr.second());
+    return (((__Diff(expr.first()) * Same(expr.second()))
+                - (Same(expr.first()) * __Diff(expr.second())))
+            / (Same(expr.second()) * Same(expr.second())));
 }
 
-template<typename A0, typename T>
-constexpr auto Diff(DivVP<A0,Var<T>> expr)
+/* Trignometry rules in __Differentiation.
+ *
+ * if f(x) = Cos(g(x))
+ * then f`(x) = Sin(g(x)) * g`(x)
+ * 
+ * if f(x) = Sin(g(x))
+ * then f`(x) = -Cos(g(x)) * g`(x)
+ * 
+ * if f(x) = Tan(g(x))
+ * then f`(x) = g`(x) / (Cos(g(x)) * Cos(g(x)))
+ * 
+ * if f(x) = ASin(g(x))
+ * then f`(x) = g`(x) / Sqrt(1 - g(x) * g(x))
+ * 
+ * if f(x) = ACos(g(x))
+ * then f`(x) = g`(x) / Sqrt(g(x) * g(x) - 1)
+ * 
+ * if f(x) = ATan(g(x))
+ * then f`(x) = g`(x) / 1 - (g(x) * g(x))
+ */
+
+template<typename Exp>
+constexpr auto __Diff(CosExp<Exp,DummyClass> expr)
 {
-    return ((Diff(expr.first()) * expr.second()) - expr.first())
-            / (expr.second() * expr.second());
+    return (Sin(Same(expr.arg())) * __Diff(expr.arg()));
 }
 
-template<typename A1, typename T>
-constexpr auto Diff(DivPV<Var<T>,A1> expr)
+template<typename Exp>
+constexpr auto __Diff(SinExp<Exp,DummyClass> expr)
 {
-    return (expr.second() - (expr.first() * Diff(expr.second())))
-            / (expr.second() * expr.second());
+    return (-Cos(Same(expr.arg())) * __Diff(expr.arg()));
 }
 
-template<typename T>
-constexpr auto Diff(DivPP<Var<T>,Var<T>> expr)
+template<typename Exp>
+constexpr auto __Diff(TanExp<Exp,DummyClass> expr)
 {
-    return Const{Zero(T{})};
+    return (__Diff(expr.arg()) / (Cos(Same(expr.arg())) * Cos(Same(expr.arg()))));
+}
+
+template<typename Exp, typename DT>
+constexpr auto Diff(Exp expr, Var<DT>& dt)
+{
+    return __Diff(expr) / Const{One(DT{})};
 }
 
 } // namespace frogs
 
-#endif // _FROGS_DIFF_H
+#endif // _FROGS___Diff_H
