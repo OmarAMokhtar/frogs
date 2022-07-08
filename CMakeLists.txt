@@ -1,15 +1,15 @@
 cmake_minimum_required(VERSION 3.0)
 
-project(FrogsTestProj)
+project(FrogsExamples)
 
-add_executable(FrogsTest
-    example/example.cpp
-    src/frogs_expressions.cpp
-)
+add_executable(UnitsExample example/units_example.cpp src/frogs_expressions.cpp)
+target_include_directories(UnitsExample PRIVATE src)
+target_compile_features(UnitsExample PRIVATE cxx_std_17)
 
-target_include_directories(FrogsTest
-    PRIVATE
-        src
-)
+add_executable(ExpressionsExample example/expressions_example.cpp src/frogs_expressions.cpp)
+target_include_directories(ExpressionsExample PRIVATE src)
+target_compile_features(ExpressionsExample PRIVATE cxx_std_17)
 
-target_compile_features(FrogsTest PRIVATE cxx_std_17)
+add_executable(DifferentiationExample example/differentiation_example.cpp src/frogs_expressions.cpp)
+target_include_directories(DifferentiationExample PRIVATE src)
+target_compile_features(DifferentiationExample PRIVATE cxx_std_17)
