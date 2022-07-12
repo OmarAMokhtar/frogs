@@ -29,6 +29,7 @@ public:
     constexpr Self& operator-=(Self a) { m_value -= a.m_value; return *this; }
     constexpr Self& operator=(Self a) { m_value = a.m_value; return *this; }
     friend constexpr Self operator-(Self a) { return {-a.m_value}; }
+    friend constexpr Self operator+(Self a) { return a; }
     friend constexpr Self operator+(Self a, Self b) { return {a.m_value + b.m_value}; }
     friend constexpr Self operator-(Self a, Self b) { return {a.m_value - b.m_value}; }
     friend constexpr Self operator*(Real a, Self b) { return {a * b.m_value}; }
@@ -52,9 +53,9 @@ public:
     friend constexpr Self ATan2(Real a, Real b) { return {atan2(a,b)}; }
     friend constexpr Self ATan2(Distance a, Distance b);
     friend constexpr Self operator""_deg(Integer v);
-    friend constexpr Self operator""_deg(Real v);
+    friend constexpr Self operator""_deg(long double v);
     friend constexpr Self operator""_rad(Integer v);
-    friend constexpr Self operator""_rad(Real v);
+    friend constexpr Self operator""_rad(long double v);
     constexpr Real toDegrees() const { return m_value / (convFrom_deg); }
     constexpr Real toRadians() const { return m_value / (convFrom_rad); }
 
@@ -63,24 +64,28 @@ private:
     static constexpr Real convFrom_deg = PI/180.0;
 
 public:
-    Str toString()
+    Str toString() const
     {
-        Str s = std::to_string(m_value);
-        s += " rad";
+        Str s = conv2str(m_value) + " rad";
         return s;
     }
 
-    friend std::ostream &operator<<(std::ostream &output, Angle obj)
+    friend std::ostream &operator<<(std::ostream &output, const Angle obj)
     {
         output << obj.toString();
         return output;
     }
+
+    friend constexpr Self One(Self&) { return Self::unit(); } \
+    friend constexpr Self One(Self&&) { return Self::unit(); } \
+    friend constexpr Self Zero(Self&) { return Self::zero(); } \
+    friend constexpr Self Zero(Self&&) { return Self::zero(); } \
 };
 
 constexpr Angle operator""_deg(Integer v) { return {v * (Angle::convFrom_deg)}; }
-constexpr Angle operator""_deg(Real v) { return {v * (Angle::convFrom_deg)}; }
+constexpr Angle operator""_deg(long double v) { return {static_cast<Real>(v) * (Angle::convFrom_deg)}; }
 constexpr Angle operator""_rad(Integer v) { return {v * (Angle::convFrom_rad)}; }
-constexpr Angle operator""_rad(Real v) { return {v * (Angle::convFrom_rad)}; }
+constexpr Angle operator""_rad(long double v) { return {static_cast<Real>(v) * (Angle::convFrom_rad)}; }
 
 constexpr Angle ATan2(Distance a, Distance b) { return {atan2(a.toMeters(), b.toMeters())}; }
 
