@@ -20,7 +20,7 @@ protected:
 public:
     constexpr Const(T v) : m_val{v} {}
     constexpr T val() { return m_val; }
-    Str toString() { return conv2str(m_val); }
+    Str toString() const { return conv2str(m_val); }
 };
 
 template<typename T, class Dummy = DummyClass>
@@ -30,7 +30,7 @@ public:
     constexpr ZeroExp() {}
     constexpr ZeroExp(T v) {}
     constexpr T val() { return ZeroExp(T{}); }
-    Str toString() { return "0"; }
+    Str toString() const { return "0"; }
 };
 
 extern Integer ___numVars;
@@ -65,7 +65,7 @@ public:
     bool operator!=(T v) { return m_val != v; }
 
     constexpr T val() { return m_val; }
-    Str toString()
+    Str toString() const
     {
         return m_name;
     }
@@ -85,13 +85,13 @@ protected: \
 public: \
     constexpr ClassName(Exp a) : m_a{a} {} \
     constexpr auto val() { return Func($(m_a)); } \
-    Str toString() { \
+    Str toString() const { \
         Str s{Str1}; \
         s += conv2str(m_a); \
         s += Str2; \
         return s; \
     } \
-    friend std::ostream &operator<<(std::ostream &output, ClassName& obj) { \
+    friend std::ostream &operator<<(std::ostream &output, const ClassName& obj) { \
         output << obj.toString(); \
         return output; \
     } \
@@ -107,7 +107,7 @@ protected: \
 public: \
     constexpr ClassName(Exp0 a, Exp1 b) : m_a{a}, m_b{b} {} \
     constexpr auto val() { return Func($(m_a), $(m_b)); } \
-    Str toString() { \
+    Str toString() const { \
         Str s{Str1}; \
         s += conv2str(m_a); \
         s += Str2; \
@@ -115,7 +115,7 @@ public: \
         s += Str3; \
         return s; \
     } \
-    friend std::ostream &operator<<(std::ostream &output, ClassName& obj) { \
+    friend std::ostream &operator<<(std::ostream &output, const ClassName& obj) { \
         output << obj.toString(); \
         return output; \
     } \
