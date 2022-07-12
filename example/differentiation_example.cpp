@@ -29,8 +29,9 @@ int32_t main()
     cout << "acceleration = " << acceleration << endl;
 
     /* Now let's evaluate all of them at different values of t */
-    for ( ; t < 3_sec ; t += 0.5_sec)
+    for (auto currTime : Range(5_sec))
     {
+        t = currTime;
         cout << "distance(" << $(t) << ") = " << $(distance) << endl;
         cout << "velocity(" << $(t) << ") = " << $(velocity) << endl;
         cout << "acceleration(" << $(t) << ") = " << $(acceleration) << endl;
