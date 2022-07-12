@@ -27,7 +27,7 @@ class UnitsMul
 public:
     A m_a;
     B m_b;
-    UnitsMul(A a, B b) : m_a{a}, m_b{b} {}
+    constexpr UnitsMul(A a, B b) : m_a{a}, m_b{b} {}
 };
 
 /* And this one is for division */
@@ -37,7 +37,7 @@ class UnitsDiv
 public:
     A m_a;
     B m_b;
-    UnitsDiv(A a, B b) : m_a{a}, m_b{b} {}
+    constexpr UnitsDiv(A a, B b) : m_a{a}, m_b{b} {}
 };
 
 /* These are the main operators that create objects of these
