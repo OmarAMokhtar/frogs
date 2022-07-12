@@ -1,2 +1,2 @@
-# frogs
-A C++ library that makes mathematical formulas and physical equations more readable and abstract. For example, it enforces the usage of physical units so that conversions from different units and formulas involving other units always end up with the correct types and scales.
+# Frogs
+Frogs is a C++ physics and mathematics framework that makes formulas more readable, abstract, and less error prone. For example, it enforces the usage of physical units (meters, seconds, kgs .. etc) so that you never make a conversion human error by mixing up inches and centimeters or assigning a velocity to an acceleration. It also helps you get the derivative of mathematical formulas written in C++. That way you'll guarantee that the derivative formula is correct and always consistent with the last change in the code. Along with many other utilities that makes you code less.
