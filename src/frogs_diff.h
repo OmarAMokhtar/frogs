@@ -11,20 +11,9 @@ namespace frogs
 /* These functions help get a zero or a one value from a certain type.
  * That type could be one of the physical types or a C++ primitive.
  * Either way, one of these functions will match and return a one or
- * a zero. We need them for __Differentiating a variable and it resolves
+ * a zero. We need them for Differentiating a variable and it resolves
  * to one or a constant and it resolves to zero.
  */
-
-template<typename T> constexpr T One(T&&) { return T::unit(); }
-template<typename T> constexpr T Zero(T&&) { return T::zero(); }
-constexpr Real One(Real) { return 1.0; }
-constexpr Real Zero(Real) { return 0.0; }
-constexpr double One(double) { return 1.0; }
-constexpr double Zero(double) { return 0.0; }
-constexpr Integer One(Integer) { return 1; }
-constexpr Integer Zero(Integer) { return 0; }
-constexpr int One(int) { return 1; }
-constexpr int Zero(int) { return 0; }
 
 /* The simplest Differentiation rules. Variables become one and
  * constants become zero.
