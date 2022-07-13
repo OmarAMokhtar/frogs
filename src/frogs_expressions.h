@@ -44,7 +44,7 @@ protected:
 public:
     constexpr ZeroExp() {}
     constexpr ZeroExp(T v) {}
-    constexpr T val() { return ZeroExp(T{}); }
+    constexpr T val() { return Zero(T{}); }
     virtual Str toString() const { return "0"; }
 };
 
