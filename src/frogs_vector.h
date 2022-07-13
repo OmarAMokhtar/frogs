@@ -47,16 +47,18 @@ public:
     {
         Str s = "[";
         for (std::int8_t i = 0 ; i < N-1 ; i++)
-        {
-            s += conv2str(m_data[i]);
-            s += ", ";
-        }
-        s += conv2str(m_data[N-1]);
-        s += "]";
+            s += conv2str(m_data[i]) + ", ";
+        s += conv2str(m_data[N-1]) + "]";
         return s;
     }
 
-    friend std::ostream &operator<<(std::ostream &output, const Vector obj)
+    friend std::ostream &operator<<(std::ostream &output, const Vector& obj)
+    {
+        output << obj.toString();
+        return output;
+    }
+
+    friend std::ostream &operator<<(std::ostream &output, const Vector&& obj)
     {
         output << obj.toString();
         return output;
