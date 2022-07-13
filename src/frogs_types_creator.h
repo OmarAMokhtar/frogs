@@ -117,11 +117,7 @@ public: \
     friend constexpr bool operator<=(Self a, Self b) { return {a.m_value <= b.m_value}; } \
     friend constexpr Self Abs(Self v) { return Abs(v); } \
     template<typename T> friend constexpr auto Diff(T); \
-    Str toString() const { \
-        Str s = conv2str(m_value); \
-        s += " " #String; \
-        return s; \
-    } \
+    Str toString() const { return conv2str(m_value) + " " #String; } \
     PublicDecl \
     friend std::ostream &operator<<(std::ostream &output, const ClassName obj) { \
         output << obj.toString(); \
