@@ -11,36 +11,53 @@ namespace frogs
 
 class DummyClass {};
 
+class Expr
+{
+protected:
+    virtual void read(void* v) = 0;
+
+public:
+    template<typename T = Real> T val() { T v; read(&v); return v; }
+    virtual Str toString() const = 0;
+};
+
 template<typename T, class Dummy = DummyClass>
-class Const
+class Const : public Expr
 {
 protected:
     T m_val;
 
+    virtual void read(void* v) { *reinterpret_cast<T*>(v) = val(); }
+
 public:
     constexpr Const(T v) : m_val{v} {}
     constexpr T val() { return m_val; }
-    Str toString() const { return conv2str(m_val); }
+    virtual Str toString() const { return conv2str(m_val); }
 };
 
 template<typename T, class Dummy = DummyClass>
-class ZeroExp
+class ZeroExp : public Expr
 {
+protected:
+    virtual void read(void* v) { *reinterpret_cast<T*>(v) = val(); }
+
 public:
     constexpr ZeroExp() {}
     constexpr ZeroExp(T v) {}
     constexpr T val() { return ZeroExp(T{}); }
-    Str toString() const { return "0"; }
+    virtual Str toString() const { return "0"; }
 };
 
 extern Integer ___numVars;
 
 template<typename T>
-class Var
+class Var : public Expr
 {
 protected:
     T m_val;
     Str m_name;
+
+    virtual void read(void* v) { *reinterpret_cast<T*>(v) = val(); }
 
 public:
     Var(T v) : m_val{v}
@@ -56,7 +73,7 @@ public:
     Var<T>& operator-=(T v)     { m_val -= v; return *this; }
     Var<T>& operator*=(Real v)  { m_val *= v; return *this; }
     Var<T>& operator/=(Real v)  { m_val /= v; return *this; }
-    
+
     bool operator<(T v)  { return m_val < v; }
     bool operator>(T v)  { return m_val > v; }
     bool operator<=(T v) { return m_val <= v; }
@@ -65,7 +82,8 @@ public:
     bool operator!=(T v) { return m_val != v; }
 
     constexpr T val() { return m_val; }
-    Str toString() const
+
+    virtual Str toString() const
     {
         return m_name;
     }
@@ -79,13 +97,14 @@ public:
 
 #define DECL_OPR_CLASS_1(ClassName, Func, Str1, Str2) \
 template<typename Exp, class Dummy = DummyClass> \
-class ClassName { \
+class ClassName : public Expr { \
 protected: \
     Exp m_a; \
+    virtual void read(void* v) { *reinterpret_cast<decltype(val())*>(v) = val(); } \
 public: \
     constexpr ClassName(Exp a) : m_a{a} {} \
     constexpr auto val() { return Func($(m_a)); } \
-    Str toString() const { \
+    virtual Str toString() const { \
         Str s{Str1}; \
         s += conv2str(m_a); \
         s += Str2; \
@@ -100,14 +119,15 @@ public: \
 
 #define DECL_OPR_CLASS_2(ClassName, Func, Str1, Str2, Str3) \
 template<class Exp0, class Exp1> \
-class ClassName { \
+class ClassName : public Expr { \
 protected: \
     Exp0 m_a; \
     Exp1 m_b; \
+    virtual void read(void* v) { *reinterpret_cast<decltype(val())*>(v) = val(); } \
 public: \
     constexpr ClassName(Exp0 a, Exp1 b) : m_a{a}, m_b{b} {} \
     constexpr auto val() { return Func($(m_a), $(m_b)); } \
-    Str toString() const { \
+    virtual Str toString() const { \
         Str s{Str1}; \
         s += conv2str(m_a); \
         s += Str2; \
