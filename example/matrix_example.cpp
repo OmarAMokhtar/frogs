@@ -27,6 +27,7 @@ int32_t main()
     mat.rotate(45_deg, 0, 0, 1);
     mat.scale(2.0);
     mat.translate(50_m, 50_m);
+
     cout << "The transformation matrix:" << endl;
     cout << mat << endl;
 
