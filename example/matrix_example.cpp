@@ -16,7 +16,7 @@ int32_t main()
     shape << (-1_m, -1_m);
     shape << (+1_m, -1_m);
 
-    cout << "Shape Before Transformation:" << endl;
+    cout << "Shape before transformation:" << endl;
     cout << shape << endl;
 
     /* The transformation is done in the same order
@@ -27,8 +27,10 @@ int32_t main()
     mat.rotate(45_deg, 0, 0, 1);
     mat.scale(2.0);
     mat.translate(50_m, 50_m);
+    cout << "The transformation matrix:" << endl;
+    cout << mat << endl;
 
-    cout << "Shape After Transformation:" << endl;
+    cout << "Shape after transformation:" << endl;
     cout << mat * shape << endl;
 
     return 0;
