@@ -17,7 +17,7 @@ protected:
     virtual void read(void* v) = 0;
 
 public:
-    template<typename T = Real> T val() { T v; read(&v); return v; }
+    template<typename T> T val() { T v; read(&v); return v; }
     virtual Str toString() const = 0;
 };
 
@@ -62,8 +62,7 @@ protected:
 public:
     Var(T v) : m_val{v}
     {
-        m_name = "var";
-        m_name += std::to_string(++___numVars);
+        m_name = "var" + std::to_string(++___numVars);
     }
 
     Var(T v, Str name) : m_val{v}, m_name{name} {}
@@ -104,13 +103,12 @@ protected: \
 public: \
     constexpr ClassName(Exp a) : m_a{a} {} \
     constexpr auto val() { return Func($(m_a)); } \
-    virtual Str toString() const { \
-        Str s{Str1}; \
-        s += conv2str(m_a); \
-        s += Str2; \
-        return s; \
-    } \
+    virtual Str toString() const { return Str1 + conv2str(m_a) + Str2; } \
     friend std::ostream &operator<<(std::ostream &output, const ClassName& obj) { \
+        output << obj.toString(); \
+        return output; \
+    } \
+    friend std::ostream &operator<<(std::ostream &output, const ClassName&& obj) { \
         output << obj.toString(); \
         return output; \
     } \
@@ -128,14 +126,13 @@ public: \
     constexpr ClassName(Exp0 a, Exp1 b) : m_a{a}, m_b{b} {} \
     constexpr auto val() { return Func($(m_a), $(m_b)); } \
     virtual Str toString() const { \
-        Str s{Str1}; \
-        s += conv2str(m_a); \
-        s += Str2; \
-        s += conv2str(m_b); \
-        s += Str3; \
-        return s; \
+        return Str1 + conv2str(m_a) + Str2 + conv2str(m_b); + Str3; \
     } \
     friend std::ostream &operator<<(std::ostream &output, const ClassName& obj) { \
+        output << obj.toString(); \
+        return output; \
+    } \
+    friend std::ostream &operator<<(std::ostream &output, const ClassName&& obj) { \
         output << obj.toString(); \
         return output; \
     } \
