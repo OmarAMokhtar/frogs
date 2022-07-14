@@ -9,14 +9,12 @@
 
 /* The macros that helps build classes */
 
-#define DECL_UNIT(P, Unit, Getter, Scale) \
-    friend constexpr Self operator""##Unit(Integer v); \
-    friend constexpr Self operator""##Unit(long double v); \
-    private: static constexpr Real convFrom##Unit = Scale; \
-    public: constexpr Real Getter() const { return m_value / (convFrom##Unit); } \
+#define DECL_UNIT(Result, Unit, Getter, Scale) \
+    static constexpr Real convFrom##Unit = Scale; \
+    constexpr Real Getter() const { return m_value / (convFrom##Unit); } \
 
 #define IMPL_UNIT(ClassName, Unit) \
-    constexpr ClassName operator""##Unit(Integer v) { return {v * (ClassName::convFrom##Unit)}; } \
+    constexpr ClassName operator""##Unit(unsigned long long v) { return {v * (ClassName::convFrom##Unit)}; } \
     constexpr ClassName operator""##Unit(long double v) { return {static_cast<Real>(v) * (ClassName::convFrom##Unit)}; } \
 
 #define DECL_CONV(Result, ClassA, Opr, ClassB) \
@@ -83,14 +81,23 @@
     constexpr Result operator*(UnitsDiv<ClassA,ClassC,0> a_c, ClassB b) \
     { return {(a_c.m_a.UnitA() / a_c.m_b.UnitC()) * b.UnitB()}; }
 
+// #define DECL_CONV_A_DIV_BC(Result, ClassA, ClassB, ClassC) \
+//     friend constexpr Result operator/(UnitsMul<ClassA,ClassB,0>, ClassC); \
+//     friend constexpr Result operator/(UnitsMul<ClassB,ClassA,0>, ClassC); \
+//     friend constexpr Result operator*(ClassA, UnitsDiv<ClassB,ClassC,0>); \
+//     friend constexpr Result operator*(ClassB, UnitsDiv<ClassA,ClassC,0>); \
+//     friend constexpr Result operator*(UnitsDiv<ClassB,ClassC,0>, ClassA); \
+//     friend constexpr Result operator*(UnitsDiv<ClassA,ClassC,0>, ClassB);
+
 #define DECL_CLASS(ClassName, String, PublicDecl) \
+template<int P = 1> \
 class ClassName { \
 private: \
     Real m_value; \
 public: \
     constexpr ClassName() : m_value(0.0) {} \
     constexpr ClassName(Real v) : m_value(v) {} \
-    using Self = ClassName; \
+    using Self = ClassName<P>; \
     static constexpr Self zero() { return {0.0}; } \
     static constexpr Self unit() { return {1.0}; } \
     constexpr Self& operator+=(Self a) { m_value += a.m_value; return *this; } \
@@ -101,35 +108,80 @@ public: \
     constexpr auto operator,(Self other) { return Vec2{*this, other}; } \
     constexpr auto operator,(Vec2<Self> other) { return Vec3{*this, other}; } \
     constexpr auto operator,(Vec3<Self> other) { return Vec4{*this, other}; } \
-    friend constexpr Self operator-(Self a) { return {-a.m_value}; } \
-    friend constexpr Self operator+(Self a) { return a; } \
-    friend constexpr Self operator+(Self a, Self b) { return {a.m_value + b.m_value}; } \
-    friend constexpr Self operator-(Self a, Self b) { return {a.m_value - b.m_value}; } \
-    friend constexpr Self operator*(Real a, Self b) { return {a * b.m_value}; } \
-    friend constexpr Self operator*(Self a, Real b) { return {a.m_value * b}; } \
-    friend constexpr Self operator/(Self a, Real b) { return {a.m_value / b}; } \
-    friend constexpr Real operator/(Self a, Self b) { return {a.m_value / b.m_value}; } \
-    friend constexpr bool operator==(Self a, Self b) { return {a.m_value == b.m_value}; } \
-    friend constexpr bool operator!=(Self a, Self b) { return {a.m_value != b.m_value}; } \
-    friend constexpr bool operator>(Self a, Self b) { return {a.m_value > b.m_value}; } \
-    friend constexpr bool operator>=(Self a, Self b) { return {a.m_value >= b.m_value}; } \
-    friend constexpr bool operator<(Self a, Self b) { return {a.m_value < b.m_value}; } \
-    friend constexpr bool operator<=(Self a, Self b) { return {a.m_value <= b.m_value}; } \
-    friend constexpr Self Abs(Self v) { return Abs(v); } \
+    template<int N> friend constexpr ClassName<N> operator-(ClassName<N> a); \
+    template<int N> friend constexpr ClassName<N> operator+(ClassName<N> a); \
+    template<int N> friend constexpr ClassName<N> operator+(ClassName<N> a, ClassName<N> b); \
+    template<int N> friend constexpr ClassName<N> operator-(ClassName<N> a, ClassName<N> b); \
+    template<int N> friend constexpr ClassName<N> operator*(Real a, ClassName<N> b); \
+    template<int N> friend constexpr ClassName<N> operator*(ClassName<N> a, Real b); \
+    template<int N> friend constexpr ClassName<N> operator/(ClassName<N> a, Real b); \
+    template<int N> friend constexpr ClassName<-N> operator/(Real a, ClassName<N> b); \
+    template<int N, int M> friend constexpr ClassName<N+M> operator*(ClassName<N> a, ClassName<M> b); \
+    template<int N, int M> friend constexpr ClassName<N-M> operator/(ClassName<N> a, ClassName<M> b); \
+    template<int N> friend constexpr Real operator/(ClassName<N> a, ClassName<N> b); \
+    template<int N> friend constexpr bool operator==(ClassName<N> a, ClassName<N> b); \
+    template<int N> friend constexpr bool operator!=(ClassName<N> a, ClassName<N> b); \
+    template<int N> friend constexpr bool operator>(ClassName<N> a, ClassName<N> b); \
+    template<int N> friend constexpr bool operator>=(ClassName<N> a, ClassName<N> b); \
+    template<int N> friend constexpr bool operator<(ClassName<N> a, ClassName<N> b); \
+    template<int N> friend constexpr bool operator<=(ClassName<N> a, ClassName<N> b); \
+    template<int N> friend constexpr ClassName<N> Abs(ClassName<N> v); \
+    friend constexpr ClassName<1> Sqrt(ClassName<2> v); \
+    friend constexpr ClassName<2> Sqrt(ClassName<4> v); \
+    friend constexpr ClassName<3> Sqrt(ClassName<6> v); \
+    friend constexpr ClassName<4> Sqrt(ClassName<8> v); \
+    template<int N> friend constexpr ClassName<N*2> Sqr(ClassName<N> v); \
+    template<int N> friend constexpr ClassName<N*3> Cube(ClassName<N> v); \
     template<typename T> friend constexpr auto Diff(T); \
-    Str toString() const { return conv2str(m_value) + " " #String; } \
+    Str toString() const { \
+        return conv2str(m_value) + " " #String \
+        + ((P != 1) ? conv2str(P) : Str("")); } \
     PublicDecl \
     friend std::ostream &operator<<(std::ostream &output, const ClassName obj) { \
         output << obj.toString(); \
         return output; \
     } \
-    friend constexpr Self One(Self&) { return Self::unit(); } \
-    friend constexpr Self One(Self&&) { return Self::unit(); } \
-    friend constexpr Self Zero(Self&) { return Self::zero(); } \
-    friend constexpr Self Zero(Self&&) { return Self::zero(); } \
+    template <int N> friend constexpr ClassName<N> One(ClassName<N>&); \
+    template <int N> friend constexpr ClassName<N> One(ClassName<N>&&); \
+    template <int N> friend constexpr ClassName<N> Zero(ClassName<N>&); \
+    template <int N> friend constexpr ClassName<N> Zero(ClassName<N>&&); \
 };
 
+#define IMPL_CLASS(ClassName) \
+    template<int N> constexpr ClassName<N> operator-(ClassName<N> a) { return {-a.m_value}; } \
+    template<int N> constexpr ClassName<N> operator+(ClassName<N> a) { return a; } \
+    template<int N> constexpr ClassName<N> operator+(ClassName<N> a, ClassName<N> b) { return {a.m_value + b.m_value}; } \
+    template<int N> constexpr ClassName<N> operator-(ClassName<N> a, ClassName<N> b) { return {a.m_value - b.m_value}; } \
+    template<int N> constexpr ClassName<N> operator*(Real a, ClassName<N> b) { return {a * b.m_value}; } \
+    template<int N> constexpr ClassName<N> operator*(ClassName<N> a, Real b) { return {a.m_value * b}; } \
+    template<int N> constexpr ClassName<N> operator/(ClassName<N> a, Real b) { return {a.m_value / b}; } \
+    template<int N> constexpr ClassName<-N> operator/(Real a, ClassName<N> b) { return {a / b.m_value}; } \
+    template<int N, int M> \
+    constexpr ClassName<N+M> operator*(ClassName<N> a, ClassName<M> b) \
+    { return {a.m_value * b.m_value}; } \
+    template<int N, int M> \
+    constexpr ClassName<N-M> operator/(ClassName<N> a, ClassName<M> b) \
+    { return {a.m_value / b.m_value}; } \
+    template<int N> constexpr Real operator/(ClassName<N> a, ClassName<N> b) { return {a.m_value / b.m_value}; } \
+    template<int N> constexpr bool operator==(ClassName<N> a, ClassName<N> b) { return {a.m_value == b.m_value}; } \
+    template<int N> constexpr bool operator!=(ClassName<N> a, ClassName<N> b) { return {a.m_value != b.m_value}; } \
+    template<int N> constexpr bool operator>(ClassName<N> a, ClassName<N> b) { return {a.m_value > b.m_value}; } \
+    template<int N> constexpr bool operator>=(ClassName<N> a, ClassName<N> b) { return {a.m_value >= b.m_value}; } \
+    template<int N> constexpr bool operator<(ClassName<N> a, ClassName<N> b) { return {a.m_value < b.m_value}; } \
+    template<int N> constexpr bool operator<=(ClassName<N> a, ClassName<N> b) { return {a.m_value <= b.m_value}; } \
+    template<int N> constexpr ClassName<N> Abs(ClassName<N> v) { return (v.m_value < 0) ? -v : v; } \
+    constexpr ClassName<1> Sqrt(ClassName<2> v) { return {sqrt(v.m_value)}; } \
+    constexpr ClassName<2> Sqrt(ClassName<4> v) { return {sqrt(v.m_value)}; } \
+    constexpr ClassName<3> Sqrt(ClassName<6> v) { return {sqrt(v.m_value)}; } \
+    constexpr ClassName<4> Sqrt(ClassName<8> v) { return {sqrt(v.m_value)}; } \
+    template<int N> constexpr ClassName<N*2> Sqr(ClassName<N> v) { return {v.m_value*v.m_value}; } \
+    template<int N> constexpr ClassName<N*3> Cube(ClassName<N> v) { return {v.m_value*v.m_value*v.m_value}; } \
+    template<int N> constexpr ClassName<N> One(ClassName<N>&) { return ClassName<N>::unit(); } \
+    template<int N> constexpr ClassName<N> One(ClassName<N>&&) { return ClassName<N>::unit(); } \
+    template<int N> constexpr ClassName<N> Zero(ClassName<N>&) { return ClassName<N>::zero(); } \
+    template<int N> constexpr ClassName<N> Zero(ClassName<N>&&) { return ClassName<N>::zero(); } \
+
 #define DECL_FWD(ClassName) \
-class ClassName; \
+template<int P> class ClassName; \
 
 #endif // _FROGS_TYPES_CREATOR_H
