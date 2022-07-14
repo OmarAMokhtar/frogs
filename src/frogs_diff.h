@@ -154,6 +154,38 @@ constexpr auto __Diff(TanExp<Exp,DummyClass> expr, Var<DT>& dt)
     return (__Diff(expr.arg(),dt) / (Cos(Same(expr.arg())) * Cos(Same(expr.arg()))));
 }
 
+/* 
+ * Square root rules in differentiation
+ * 
+ * if f(x) = sqrt(g(x))
+ * then f`(x) = g`(x) / ( 2 * sqrt(g(x)) )
+ */
+
+template<typename Exp, typename DT>
+constexpr auto __Diff(SqrtExp<Exp,DummyClass> expr, Var<DT>& dt)
+{
+    return (__Diff(expr.arg(),dt) / (2 * expr));
+}
+
+/* 
+ * Square and Cube rules in differentiation
+ * 
+ * if f(x) = g(x)^N
+ * then f`(x) = g`(x) * N * g(x)^(N-1)
+ */
+
+template<typename Exp, typename DT>
+constexpr auto __Diff(SqrExp<Exp,DummyClass> expr, Var<DT>& dt)
+{
+    return (__Diff(expr.arg(),dt) * 2 * Same(expr.arg()));
+}
+
+template<typename Exp, typename DT>
+constexpr auto __Diff(CubeExp<Exp,DummyClass> expr, Var<DT>& dt)
+{
+    return (__Diff(expr.arg(),dt) * 3 * Sqr(Same(expr.arg())));
+}
+
 /* This is the main Differentiation function. The only difference
  * between this and the others is that it divides by a unit of the
  * differentiation variable.
