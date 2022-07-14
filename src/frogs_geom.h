@@ -13,25 +13,25 @@ namespace frogs
 class Line2D
 {
 private:
-    Vec2<Distance<1>> m_p0;
-    Vec2<Distance<1>> m_p1;
+    Vec2<Distance> m_p0;
+    Vec2<Distance> m_p1;
 
 public:
     constexpr Line2D() = default;
 
-    constexpr Line2D(Vec2<Distance<1>>& p0, Vec2<Distance<1>>& p1)
+    constexpr Line2D(Vec2<Distance>& p0, Vec2<Distance>& p1)
                     : m_p0{p0}, m_p1{p1} {}
 
-    constexpr Line2D(Vec2<Distance<1>>& p0, Vec2<Distance<1>>&& p1)
+    constexpr Line2D(Vec2<Distance>& p0, Vec2<Distance>&& p1)
                     : m_p0{p0}, m_p1{p1} {}
 
-    constexpr Line2D(Vec2<Distance<1>>&& p0, Vec2<Distance<1>>& p1)
+    constexpr Line2D(Vec2<Distance>&& p0, Vec2<Distance>& p1)
                     : m_p0{p0}, m_p1{p1} {}
 
-    constexpr Line2D(Vec2<Distance<1>>&& p0, Vec2<Distance<1>>&& p1)
+    constexpr Line2D(Vec2<Distance>&& p0, Vec2<Distance>&& p1)
                     : m_p0{p0}, m_p1{p1} {}
 
-    constexpr Line2D(Distance<1> x0, Distance<1> y0, Distance<1> x1, Distance<1> y1)
+    constexpr Line2D(Distance x0, Distance y0, Distance x1, Distance y1)
                     : m_p0{x0,y0}, m_p1{x1,y1} {}
 
     constexpr auto p0() const { return m_p0; }
@@ -40,14 +40,14 @@ public:
     constexpr auto y0() const { return m_p0.y(); }
     constexpr auto x1() const { return m_p1.x(); }
     constexpr auto y1() const { return m_p1.y(); }
-    constexpr Distance<1> dx() const { return m_p1.x() - m_p0.x(); }
-    constexpr Distance<1> dy() const { return m_p1.y() - m_p0.y(); }
-    constexpr Angle<1> angle() const { return ATan2(dy(),dx()); }
-    constexpr Distance<1> length() const { return Dist(p0(),p1()); }
+    constexpr Distance dx() const { return m_p1.x() - m_p0.x(); }
+    constexpr Distance dy() const { return m_p1.y() - m_p0.y(); }
+    constexpr Angle angle() const { return ATan2(dy(),dx()); }
+    constexpr Distance length() const { return Dist(p0(),p1()); }
 
-    void setAngle(Angle<1> ang) { rotate(ang - angle()); }
+    void setAngle(Angle ang) { rotate(ang - angle()); }
 
-    void rotate(Angle<1> ang)
+    void rotate(Angle ang)
     {
         Mat4 mat;
         mat.translate(-x0(), -y0());
@@ -56,7 +56,7 @@ public:
         *this = mat * (*this);
     }
 
-    void setLength(Distance<1> len) { scale(len/length()); }
+    void setLength(Distance len) { scale(len/length()); }
 
     void scale(Real factor)
     {
@@ -78,7 +78,7 @@ public:
     friend Line2D operator*(Mat4&& m, Line2D& l) { return fwd(m) * l; }
     friend Line2D operator*(Mat4&& m, Line2D&& l) { return fwd(m) * fwd(l); }
 
-    friend std::tuple<bool, Vec2<Distance<1>>> Intersect(const Line2D& l0, const Line2D& l1)
+    friend std::tuple<bool, Vec2<Distance>> Intersect(const Line2D& l0, const Line2D& l1)
     {
         auto dx0 = l0.dx();
         auto dy0 = l0.dy();
@@ -135,14 +135,14 @@ public:
                 (ix, iy));
     }
 
-    friend std::tuple<bool, Vec2<Distance<1>>> Intersect(const Line2D& l0, const Line2D&& l1)
+    friend std::tuple<bool, Vec2<Distance>> Intersect(const Line2D& l0, const Line2D&& l1)
     { return Intersect(l0,fwd(l1)); }
-    friend std::tuple<bool, Vec2<Distance<1>>> Intersect(const Line2D&& l0, const Line2D& l1)
+    friend std::tuple<bool, Vec2<Distance>> Intersect(const Line2D&& l0, const Line2D& l1)
     { return Intersect(fwd(l0),l1); }
-    friend std::tuple<bool, Vec2<Distance<1>>> Intersect(const Line2D&& l0, const Line2D&& l1)
+    friend std::tuple<bool, Vec2<Distance>> Intersect(const Line2D&& l0, const Line2D&& l1)
     { return Intersect(fwd(l0),fwd(l1)); }
 
-    friend bool IsLeft(Vec2<Distance<1>>& pt, Line2D& line)
+    friend bool IsLeft(Vec2<Distance>& pt, Line2D& line)
     {
         Mat4 mat;
         mat.translate(-line.x0(), -line.y0());
@@ -150,18 +150,18 @@ public:
         return ((mat * pt).y() > 0_m);
     }
 
-    friend bool IsLeft(Vec2<Distance<1>>& pt, Line2D&& line)
+    friend bool IsLeft(Vec2<Distance>& pt, Line2D&& line)
     { return IsLeft(pt, fwd(line)); }
-    friend bool IsLeft(Vec2<Distance<1>>&& pt, Line2D& line)
+    friend bool IsLeft(Vec2<Distance>&& pt, Line2D& line)
     { return IsLeft(fwd(pt), line); }
-    friend bool IsLeft(Vec2<Distance<1>>&& pt, Line2D&& line)
+    friend bool IsLeft(Vec2<Distance>&& pt, Line2D&& line)
     { return IsLeft(fwd(pt), fwd(line)); }
 };
 
 class Shape2D
 {
 private:
-    std::vector<Vec2<Distance<1>>> m_data;
+    std::vector<Vec2<Distance>> m_data;
 
 public:
     Shape2D() = default;
@@ -172,8 +172,8 @@ public:
     auto begin() const { return m_data.begin(); }
     auto end() const { return m_data.end(); }
 
-    Shape2D& operator<<(Vec2<Distance<1>>& pt) { m_data.push_back(pt); return *this; }
-    Shape2D& operator<<(Vec2<Distance<1>>&& pt) { m_data.push_back(pt); return *this; }
+    Shape2D& operator<<(Vec2<Distance>& pt) { m_data.push_back(pt); return *this; }
+    Shape2D& operator<<(Vec2<Distance>&& pt) { m_data.push_back(pt); return *this; }
 
     Shape2D& operator<<(Shape2D& s)
     {
