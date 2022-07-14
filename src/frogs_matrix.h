@@ -2,7 +2,6 @@
 #define _FROGS_MATRIX_H
 
 #include "frogs_vector.h"
-#include "frogs_angle.h"
 #include "frogs_physical_types.h"
 
 namespace frogs
@@ -225,28 +224,28 @@ public:
     }
 
     /* The rotation function */
-    void rotate(Angle angle, Real x, Real y, Real z);
+    void rotate(Angle<1> angle, Real x, Real y, Real z);
 
     /* The actual translation function */
     void translate(Real x, Real y, Real z);
 
     /* Other overloads for translate */
-    void translate(Distance x, Distance y, Distance z)
+    void translate(Distance<1> x, Distance<1> y, Distance<1> z)
     { translate(x.toMeters(), y.toMeters(), z.toMeters()); }
     void translate(Real x, Real y) { translate(x, y, 0.0); }
-    void translate(Distance x, Distance y) { translate(x, y, 0_m); }
+    void translate(Distance<1> x, Distance<1> y) { translate(x, y, 0_m); }
     void translate(Vector<Real,2>& v) { translate(v[0], v[1], 0.0); }
     void translate(Vector<Real,2>&& v) { translate(v[0], v[1], 0.0); }
-    void translate(Vector<Distance,2>& v) { translate(v[0], v[1], 0_m); }
-    void translate(Vector<Distance,2>&& v) { translate(v[0], v[1], 0_m); }
+    void translate(Vector<Distance<1>,2>& v) { translate(v[0], v[1], 0_m); }
+    void translate(Vector<Distance<1>,2>&& v) { translate(v[0], v[1], 0_m); }
     void translate(Vector<Real,3>& v) { translate(v[0], v[1], v[2]); }
     void translate(Vector<Real,3>&& v) { translate(v[0], v[1], v[2]); }
-    void translate(Vector<Distance,3>& v) { translate(v[0], v[1], v[2]); }
-    void translate(Vector<Distance,3>&& v) { translate(v[0], v[1], v[2]); }
+    void translate(Vector<Distance<1>,3>& v) { translate(v[0], v[1], v[2]); }
+    void translate(Vector<Distance<1>,3>&& v) { translate(v[0], v[1], v[2]); }
     void translate(Vector<Real,4>& v) { translate(v[0]/v[3], v[1]/v[3], v[2]/v[3]); }
     void translate(Vector<Real,4>&& v) { translate(v[0]/v[3], v[1]/v[3], v[2]/v[3]); }
-    void translate(Vector<Distance,4>& v) { translate(v[0]/v[3], v[1]/v[3], v[2]/v[3]); }
-    void translate(Vector<Distance,4>&& v) { translate(v[0]/v[3], v[1]/v[3], v[2]/v[3]); }
+    void translate(Vector<Distance<1>,4>& v) { translate(v[0]/v[3], v[1]/v[3], v[2]/v[3]); }
+    void translate(Vector<Distance<1>,4>&& v) { translate(v[0]/v[3], v[1]/v[3], v[2]/v[3]); }
  
     /* The actual scale function */
     void scale(Real x, Real y, Real z);
@@ -471,19 +470,19 @@ constexpr auto operator*(Mat4& m, Vector<T,4>& v)
 template<typename T>
 constexpr auto operator*(Mat4& m, Vector<T,3>& v)
 {
-    return Vec4{ m(0,0) * v(0) + m(0,1) * v(1) + m(0,2) * v(2) + m(0,3),
-                 m(1,0) * v(0) + m(1,1) * v(1) + m(1,2) * v(2) + m(1,3),
-                 m(2,0) * v(0) + m(2,1) * v(1) + m(2,2) * v(2) + m(2,3),
-                 m(3,0) * v(0) + m(3,1) * v(1) + m(3,2) * v(2) + m(3,3) };
+    return Vec4{ m(0,0) * v(0) + m(0,1) * v(1) + m(0,2) * v(2) + m(0,3) * One(T{}),
+                 m(1,0) * v(0) + m(1,1) * v(1) + m(1,2) * v(2) + m(1,3) * One(T{}),
+                 m(2,0) * v(0) + m(2,1) * v(1) + m(2,2) * v(2) + m(2,3) * One(T{}),
+                 m(3,0) * v(0) + m(3,1) * v(1) + m(3,2) * v(2) + m(3,3) * One(T{}) };
 }
 
 template<typename T>
 constexpr auto operator*(Mat4& m, Vector<T,2>& v)
 {
-    return Vec4{ m(0,0) * v(0) + m(0,1) * v(1) + m(0,3),
-                 m(1,0) * v(0) + m(1,1) * v(1) + m(1,3),
-                 m(2,0) * v(0) + m(2,1) * v(1) + m(2,3),
-                 m(3,0) * v(0) + m(3,1) * v(1) + m(3,3) };
+    return Vec4{ m(0,0) * v(0) + m(0,1) * v(1) + m(0,3) * One(T{}),
+                 m(1,0) * v(0) + m(1,1) * v(1) + m(1,3) * One(T{}),
+                 m(2,0) * v(0) + m(2,1) * v(1) + m(2,3) * One(T{}),
+                 m(3,0) * v(0) + m(3,1) * v(1) + m(3,3) * One(T{}) };
 }
 
 template<typename T>
@@ -523,10 +522,10 @@ template<typename T> constexpr auto operator*(Mat4&& m, Vec4<T>&& v) { return fw
 template<typename T>
 constexpr auto operator*(Mat4& m, Vec3<T>& v)
 {
-    return Vec4{ m(0,0) * v(0) + m(0,1) * v(1) + m(0,2) * v(2) + m(0,3),
-                 m(1,0) * v(0) + m(1,1) * v(1) + m(1,2) * v(2) + m(1,3),
-                 m(2,0) * v(0) + m(2,1) * v(1) + m(2,2) * v(2) + m(2,3),
-                 m(3,0) * v(0) + m(3,1) * v(1) + m(3,2) * v(2) + m(3,3) };
+    return Vec4{ m(0,0) * v(0) + m(0,1) * v(1) + m(0,2) * v(2) + m(0,3) * One(T{}),
+                 m(1,0) * v(0) + m(1,1) * v(1) + m(1,2) * v(2) + m(1,3) * One(T{}),
+                 m(2,0) * v(0) + m(2,1) * v(1) + m(2,2) * v(2) + m(2,3) * One(T{}),
+                 m(3,0) * v(0) + m(3,1) * v(1) + m(3,2) * v(2) + m(3,3) * One(T{}) };
 }
 
 template<typename T> constexpr auto operator*(Mat4&& m, Vec3<T>& v) { return fwd(m) * v; }
@@ -536,10 +535,10 @@ template<typename T> constexpr auto operator*(Mat4&& m, Vec3<T>&& v) { return fw
 template<typename T>
 constexpr auto operator*(Mat4& m, Vec2<T>& v)
 {
-    return Vec4{ m(0,0) * v(0) + m(0,1) * v(1) + m(0,3),
-                 m(1,0) * v(0) + m(1,1) * v(1) + m(1,3),
-                 m(2,0) * v(0) + m(2,1) * v(1) + m(2,3),
-                 m(3,0) * v(0) + m(3,1) * v(1) + m(3,3) };
+    return Vec4{ m(0,0) * v(0) + m(0,1) * v(1) + m(0,3) * One(T{}),
+                 m(1,0) * v(0) + m(1,1) * v(1) + m(1,3) * One(T{}),
+                 m(2,0) * v(0) + m(2,1) * v(1) + m(2,3) * One(T{}),
+                 m(3,0) * v(0) + m(3,1) * v(1) + m(3,3) * One(T{}) };
 }
 
 template<typename T> constexpr auto operator*(Mat4&& m, Vec2<T>& v) { return fwd(m) * v; }
@@ -565,7 +564,7 @@ constexpr auto operator*(Mat4& m0, Mat4&& m1) { return m0 * fwd(m1); }
 constexpr auto operator*(Mat4&& m0, Mat4& m1) { return fwd(m0) * m1; }
 constexpr auto operator*(Mat4&& m0, Mat4&& m1) { return fwd(m0) * fwd(m1); }
 
-void Mat4::rotate(Angle angle, Real x, Real y, Real z)
+void Mat4::rotate(Angle<1> angle, Real x, Real y, Real z)
 {
     auto c = Cos(angle);
     auto s = Sin(angle);
