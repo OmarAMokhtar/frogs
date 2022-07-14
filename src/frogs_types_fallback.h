@@ -79,6 +79,14 @@ constexpr auto operator/(UnitsMul<A,B,0> a, UnitsMul<B,B,0> b) { return (a.m_b /
 template<typename A, typename B, typename C>
 constexpr auto operator/(UnitsMul<A,B,0> a, UnitsMul<C,B,0> b) { return (a.m_b / b.m_b) * (a.m_a / b.m_a); }
 
+template<typename A, int N, int M, template<int...> class B>
+constexpr auto operator/(UnitsMul<A,B<N>,0> a, B<M> b)
+{ return a.m_a * (a.m_b / b); }
+
+template<typename A, int N, int M, template<int...> class B>
+constexpr auto operator/(UnitsMul<B<N>,A,0> a, B<M> b)
+{ return a.m_b * (a.m_a / b); }
+
 } // namespace frogs
 
 #endif // _FROGS_TYPES_FALLBACK_H
