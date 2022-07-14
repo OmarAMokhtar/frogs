@@ -126,7 +126,7 @@ public: \
     constexpr ClassName(Exp0 a, Exp1 b) : m_a{a}, m_b{b} {} \
     constexpr auto val() { return Func($(m_a), $(m_b)); } \
     virtual Str toString() const { \
-        return Str1 + conv2str(m_a) + Str2 + conv2str(m_b); + Str3; \
+        return Str1 + conv2str(m_a) + Str2 + conv2str(m_b) + Str3; \
     } \
     friend std::ostream &operator<<(std::ostream &output, const ClassName& obj) { \
         output << obj.toString(); \
@@ -242,6 +242,8 @@ DECL_OPR_1(Neg,-)
 DECL_OPR_1(Pos,+)
 DECL_FUNC_1(AbsExp, Abs)
 DECL_FUNC_1(SqrtExp, Sqrt)
+DECL_FUNC_1(SqrExp, Sqr)
+DECL_FUNC_1(CubeExp, Cube)
 DECL_FUNC_1(CosExp, Cos)
 DECL_FUNC_1(SinExp, Sin)
 DECL_FUNC_1(TanExp, Tan)
