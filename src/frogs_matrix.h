@@ -224,28 +224,28 @@ public:
     }
 
     /* The rotation function */
-    void rotate(Angle<1> angle, Real x, Real y, Real z);
+    void rotate(Angle angle, Real x, Real y, Real z);
 
     /* The actual translation function */
     void translate(Real x, Real y, Real z);
 
     /* Other overloads for translate */
-    void translate(Distance<1> x, Distance<1> y, Distance<1> z)
+    void translate(Distance x, Distance y, Distance z)
     { translate(x.toMeters(), y.toMeters(), z.toMeters()); }
     void translate(Real x, Real y) { translate(x, y, 0.0); }
-    void translate(Distance<1> x, Distance<1> y) { translate(x, y, 0_m); }
+    void translate(Distance x, Distance y) { translate(x, y, 0_m); }
     void translate(Vector<Real,2>& v) { translate(v[0], v[1], 0.0); }
     void translate(Vector<Real,2>&& v) { translate(v[0], v[1], 0.0); }
-    void translate(Vector<Distance<1>,2>& v) { translate(v[0], v[1], 0_m); }
-    void translate(Vector<Distance<1>,2>&& v) { translate(v[0], v[1], 0_m); }
+    void translate(Vector<Distance,2>& v) { translate(v[0], v[1], 0_m); }
+    void translate(Vector<Distance,2>&& v) { translate(v[0], v[1], 0_m); }
     void translate(Vector<Real,3>& v) { translate(v[0], v[1], v[2]); }
     void translate(Vector<Real,3>&& v) { translate(v[0], v[1], v[2]); }
-    void translate(Vector<Distance<1>,3>& v) { translate(v[0], v[1], v[2]); }
-    void translate(Vector<Distance<1>,3>&& v) { translate(v[0], v[1], v[2]); }
+    void translate(Vector<Distance,3>& v) { translate(v[0], v[1], v[2]); }
+    void translate(Vector<Distance,3>&& v) { translate(v[0], v[1], v[2]); }
     void translate(Vector<Real,4>& v) { translate(v[0]/v[3], v[1]/v[3], v[2]/v[3]); }
     void translate(Vector<Real,4>&& v) { translate(v[0]/v[3], v[1]/v[3], v[2]/v[3]); }
-    void translate(Vector<Distance<1>,4>& v) { translate(v[0]/v[3], v[1]/v[3], v[2]/v[3]); }
-    void translate(Vector<Distance<1>,4>&& v) { translate(v[0]/v[3], v[1]/v[3], v[2]/v[3]); }
+    void translate(Vector<Distance,4>& v) { translate(v[0]/v[3], v[1]/v[3], v[2]/v[3]); }
+    void translate(Vector<Distance,4>&& v) { translate(v[0]/v[3], v[1]/v[3], v[2]/v[3]); }
  
     /* The actual scale function */
     void scale(Real x, Real y, Real z);
@@ -564,7 +564,7 @@ constexpr auto operator*(Mat4& m0, Mat4&& m1) { return m0 * fwd(m1); }
 constexpr auto operator*(Mat4&& m0, Mat4& m1) { return fwd(m0) * m1; }
 constexpr auto operator*(Mat4&& m0, Mat4&& m1) { return fwd(m0) * fwd(m1); }
 
-void Mat4::rotate(Angle<1> angle, Real x, Real y, Real z)
+void Mat4::rotate(Angle angle, Real x, Real y, Real z)
 {
     auto c = Cos(angle);
     auto s = Sin(angle);
