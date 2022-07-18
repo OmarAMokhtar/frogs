@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <iostream>
 #include <string>
+#include <type_traits>
 
 #include "frogs_primitives.h"
 
@@ -11,7 +12,9 @@
 
 #define DECL_UNIT(Result, Unit, Getter, Scale) \
     static constexpr Real convFrom##Unit = Scale; \
-    constexpr Real Getter() const { return m_value / (convFrom##Unit); } \
+    constexpr Real Getter() const { \
+        assert(this->order() == Result::order()); \
+        return m_value / (convFrom##Unit); } \
 
 #define IMPL_UNIT(ClassName, Unit) \
     constexpr ClassName operator""##Unit(unsigned long long v) { return {v * (ClassName::convFrom##Unit)}; } \
@@ -98,6 +101,7 @@ public: \
     constexpr ClassName##T() : m_value(0.0) {} \
     constexpr ClassName##T(Real v) : m_value(v) {} \
     using Self = ClassName##T<P>; \
+    static constexpr auto order() { return P; } \
     static constexpr Self zero() { return {0.0}; } \
     static constexpr Self unit() { return {1.0}; } \
     constexpr Self& operator+=(Self a) { m_value += a.m_value; return *this; } \
