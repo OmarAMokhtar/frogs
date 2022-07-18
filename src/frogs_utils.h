@@ -2,6 +2,7 @@
 #define _FROGS_UTILS_H
 
 #include "frogs_primitives.h"
+#include "frogs_expressions.h"
 
 #include <algorithm>
 
