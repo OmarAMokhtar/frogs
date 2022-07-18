@@ -2,6 +2,7 @@
 #define _FROGS_EXPRESSIONS_H
 
 #include <string>
+#include <set>
 #include <math.h>
 
 #include "frogs_primitives.h"
@@ -19,33 +20,6 @@ protected:
 public:
     template<typename T> T val() { T v; read(&v); return v; }
     virtual Str toString() const = 0;
-};
-
-template<typename T, class Dummy = DummyClass>
-class Const : public Expr
-{
-protected:
-    T m_val;
-
-    virtual void read(void* v) { *reinterpret_cast<T*>(v) = val(); }
-
-public:
-    constexpr Const(T v) : m_val{v} {}
-    constexpr T val() { return m_val; }
-    virtual Str toString() const { return conv2str(m_val); }
-};
-
-template<typename T, class Dummy = DummyClass>
-class ZeroExp : public Expr
-{
-protected:
-    virtual void read(void* v) { *reinterpret_cast<T*>(v) = val(); }
-
-public:
-    constexpr ZeroExp() {}
-    constexpr ZeroExp(T v) {}
-    constexpr T val() { return Zero(T{}); }
-    virtual Str toString() const { return "0"; }
 };
 
 extern Integer ___numVars;
@@ -80,13 +54,112 @@ public:
     bool operator==(T v) { return m_val == v; }
     bool operator!=(T v) { return m_val != v; }
 
+    Str name() { return m_name; }
+
     constexpr T val() { return m_val; }
+
+    friend std::ostream &operator<<(std::ostream &output, const Var<T>& obj)
+    {
+        output << obj.toString();
+        return output;
+    }
+
+    friend std::ostream &operator<<(std::ostream &output, const Var<T>* obj)
+    {
+        output << obj->toString();
+        return output;
+    }
+
+    friend std::ostream &operator<<(std::ostream &output, const Var<T>&& obj)
+    {
+        output << obj.toString();
+        return output;
+    }
 
     virtual Str toString() const
     {
         return m_name;
     }
 };
+
+template<typename T, typename VT>
+auto Replace(Var<T>* exp, Var<VT>& var)
+{
+    return exp;
+}
+
+template<typename VT>
+auto Replace(Var<VT>* exp, Var<VT>& var)
+{
+    if (exp->name() == var.name())
+        return &var;
+    else
+        return exp;
+}
+
+template<typename T, class Dummy = DummyClass>
+class Const : public Expr
+{
+protected:
+    T m_val;
+
+    virtual void read(void* v) { *reinterpret_cast<T*>(v) = val(); }
+
+public:
+    constexpr Const(T v) : m_val{v} {}
+    constexpr T val() { return m_val; }
+    virtual Str toString() const { return conv2str(m_val); }
+
+    friend std::ostream &operator<<(std::ostream &output, Const<T> obj)
+    {
+        output << obj.toString();
+        return output;
+    }
+};
+
+// template<typename T>
+// auto operator+(Const<T> a, Const<T> b)
+// { return Const{a.val() + b.val()}; }
+// template<typename T>
+// auto operator-(Const<T> a, Const<T> b)
+// { return Const{a.val() - b.val()}; }
+// template<typename T0, typename T1>
+// auto operator*(Const<T0> a, Const<T1> b)
+// { return Const{a.val() * b.val()}; }
+// template<typename T0, typename T1>
+// auto operator/(Const<T0> a, Const<T1> b)
+// { return Const{a.val() / b.val()}; }
+
+template<typename T, typename VT>
+auto Replace(Const<T> exp, Var<VT>& var)
+{
+    return exp;
+}
+
+template<typename T, class Dummy = DummyClass>
+class ZeroExp : public Expr
+{
+protected:
+    virtual void read(void* v) { *reinterpret_cast<T*>(v) = val(); }
+
+public:
+    constexpr ZeroExp() {}
+    constexpr ZeroExp(T v) {}
+    constexpr T val() { return Zero(T{}); }
+    virtual Str toString() const { return "0"; }
+
+    friend std::ostream &operator<<(std::ostream &output, ZeroExp<T> obj)
+    {
+        output << obj.toString();
+        return output;
+    }
+};
+
+template<typename T, typename VT>
+auto Replace(ZeroExp<T> exp, Var<VT>& var)
+{
+    return exp;
+}
 
 /* Each operator class needs to handle a combination of values and pointers.
  * And these combinations apply for each operator. Some operators operate on
@@ -112,8 +185,16 @@ public: \
         output << obj.toString(); \
         return output; \
     } \
-    constexpr Exp* arg() { return m_a; } \
+    constexpr Exp arg() { return m_a; } \
 }; \
+template<typename VT, typename Exp> \
+auto Replace(ClassName<Exp,DummyClass>& exp, Var<VT>& var) { \
+    return ClassName{Replace(exp.arg(), var) }; \
+} \
+template<typename VT, typename Exp> \
+auto Replace(ClassName<Exp,DummyClass>&& exp, Var<VT>& var) { \
+    return ClassName{Replace(exp.arg(), var) }; \
+} \
 
 #define DECL_OPR_CLASS_2(ClassName, Func, Str1, Str2, Str3) \
 template<class Exp0, class Exp1> \
@@ -139,6 +220,16 @@ public: \
     constexpr Exp0 first() { return m_a; } \
     constexpr Exp1 second() { return m_b; } \
 }; \
+template<typename VT, class Exp0, class Exp1> \
+auto Replace(ClassName<Exp0,Exp1>& exp, Var<VT>& var) { \
+    return ClassName{Replace(exp.first(), var), \
+                     Replace(exp.second(), var)}; \
+} \
+template<typename VT, class Exp0, class Exp1> \
+auto Replace(ClassName<Exp0,Exp1>&& exp, Var<VT>& var) { \
+    return ClassName{Replace(exp.first(), var), \
+                     Replace(exp.second(), var)}; \
+} \
 
 #define DECL_OPR_2(Name, Opr) \
 template<typename T0, typename T1> constexpr auto Name##Func(T0 a, T1 b) { return a Opr b; } \
