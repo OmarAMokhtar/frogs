@@ -46,10 +46,13 @@ public:
  * that overload instead. Otherwise if it's not defined, the
  * choice will fall back to these.
  */
-template<typename A, typename B>
-constexpr auto operator*(A a, B b) { return UnitsMul{a,b}; }
-template<typename A, typename B>
-constexpr auto operator/(A a, B b) { return UnitsDiv{a,b}; }
+template<int PA, template<int...> class A, int PB, template<int...> class B>
+constexpr auto operator*(Unit<PA,A> a, Unit<PB,B> b)
+{ return UnitsMul{a,b}; }
+
+template<int PA, template<int...> class A, int PB, template<int...> class B>
+constexpr auto operator/(Unit<PA,A> a, Unit<PB,B> b)
+{ return UnitsDiv{a,b}; }
 
 /* These are some of the relations that breaks these classes
  * and results in one of the defined physical types.
@@ -80,11 +83,11 @@ template<typename A, typename B, typename C>
 constexpr auto operator/(UnitsMul<A,B,0> a, UnitsMul<C,B,0> b) { return (a.m_b / b.m_b) * (a.m_a / b.m_a); }
 
 template<typename A, int N, int M, template<int...> class B>
-constexpr auto operator/(UnitsMul<A,B<N>,0> a, B<M> b)
+constexpr auto operator/(UnitsMul<A,Unit<N,B>,0> a, Unit<M,B> b)
 { return a.m_a * (a.m_b / b); }
 
 template<typename A, int N, int M, template<int...> class B>
-constexpr auto operator/(UnitsMul<B<N>,A,0> a, B<M> b)
+constexpr auto operator/(UnitsMul<Unit<N,B>,A,0> a, Unit<M,B> b)
 { return a.m_b * (a.m_a / b); }
 
 } // namespace frogs

@@ -2,7 +2,6 @@
 #define _FROGS_UTILS_H
 
 #include "frogs_primitives.h"
-#include "frogs_expressions.h"
 
 #include <algorithm>
 
@@ -96,6 +95,12 @@ public:
         return (v <= max && v >= min);
     }
 };
+
+template<typename T>
+constexpr T Interpolate(T a, T b, Real ratio)
+{
+    return a * (1.0-ratio) + b * ratio;
+}
 
 } // namespace frogs
 
