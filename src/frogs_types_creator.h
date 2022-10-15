@@ -1,353 +1,463 @@
-#ifndef _FROGS_TYPES_CREATOR_H
-#define _FROGS_TYPES_CREATOR_H
+#ifndef _FROGS_VECTOR_H
+#define _FROGS_VECTOR_H
 
-#include <cstdint>
-#include <iostream>
-#include <string>
-#include <limits>
-#include <type_traits>
-
-#ifdef QT_VERSION
-# include <QDebug>
-#endif
-
-#include "frogs_primitives.h"
-#include "frogs_vector.h"
+#include <vector>
+#include <array>
+#include <cassert>
 
 namespace frogs
 {
-template<int P, template<int...> class T>
-class Unit
+
+/* This is a generic class for vectors */
+template<typename T, std::uint8_t N>
+class Vector
 {
-private:
-    T<P> m_value;
+protected:
+    T m_data[N];
 
 public:
-    using Self = Unit<P,T>;
-    constexpr Unit() : m_value{} {}
-    constexpr Unit(T<P> v) : m_value{v} {}
-    static constexpr Self zero() { return {T<P>::zero()}; }
-    static constexpr Self unit() { return {T<P>::unit()}; }
-    static constexpr Self max() { return {T<P>::max()}; }
-    static constexpr Self min() { return {T<P>::min()}; }
-    constexpr Self& operator+=(Self a) { m_value += $(a); return *this; }
-    constexpr Self& operator-=(Self a) { m_value -= $(a); return *this; }
-    constexpr Self& operator*=(Real a) { m_value *= a; return *this; }
-    constexpr Self& operator/=(Real a) { m_value *= a; return *this; }
-    constexpr Self& operator=(Self a) { m_value = $(a); return *this; }
-    constexpr auto operator,(Self other) { return Vec2{*this, other}; }
-    constexpr auto operator,(Vec2<Self> other) { return Vec3{*this, other}; }
-    constexpr auto operator,(Vec3<Self> other) { return Vec4{*this, other}; }
-
-    Str toString() const { return m_value.toString(); }
-
-#ifdef QT_VERSION
-    friend QDebug operator<<(QDebug d, Self v) {
-        d << v.toString().data();
-        return d;
+    constexpr Vector()
+    {
+        for (std::uint8_t i = 0 ; i < N ; i++)
+            m_data[i] = Zero(T{});
     }
-#endif
 
-    template<int N, template<int...> class C>
-    friend constexpr C<N> $(Unit<N,C> a);
+    constexpr Vector(const T(&list)[N])
+    {
+        for (std::uint8_t i = 0 ; i < N ; i++)
+            m_data[i] = list[i];
+    }
+
+    constexpr T& operator[](std::uint8_t index)
+    {
+        assert(index < N);
+        return m_data[index%N];
+    }
+
+    constexpr T operator[](std::uint8_t index) const
+    {
+        assert(index < N);
+        return m_data[index%N];
+    }
+
+    constexpr T& operator()(std::uint8_t index) { return (*this)[index]; }
+    constexpr T operator()(std::uint8_t index) const { return (*this)[index]; }
+
+    Str toString() const
+    {
+        Str s = "[";
+        for (std::int8_t i = 0 ; i < N-1 ; i++)
+            s += conv2str(m_data[i]) + ", ";
+        s += conv2str(m_data[N-1]) + "]";
+        return s;
+    }
+
+    friend std::ostream &operator<<(std::ostream &output, const Vector& obj)
+    {
+        output << obj.toString();
+        return output;
+    }
+
+    friend std::ostream &operator<<(std::ostream &output, const Vector&& obj)
+    {
+        output << obj.toString();
+        return output;
+    }
+
+    constexpr Vector<Real,N> normalized() const;
+
+    constexpr std::uint8_t size() { return N; }
 };
 
-template<int N, template<int...> class C>
-constexpr C<N> $(Unit<N,C> a)
-{ return a.m_value; }
+template<typename T> class Vec3;
+template<typename T> class Vec4;
 
-template<int P, template<int...> class T>
-constexpr Unit<P,T> operator-(Unit<P,T> a)
-{ return {-$(a)}; }
+/* A specific class for a vectors with 2 elements */
+template<typename T>
+class Vec2 : public Vector<T,2>
+{
+public:
+    constexpr Vec2(const T(&list)[2]) : Vector<T,2>{list} {}
+    constexpr Vec2(T x = Zero(T{}),
+                   T y = Zero(T{}))
+                   : Vector<T,2>{{x, y}} {}
+    constexpr Vec2(Vector<T,2> xy)
+                   : Vector<T,2>{{xy[0], xy[1]}} {}
+    constexpr T& x() { return (*this)[0]; }
+    constexpr T& y() { return (*this)[1]; }
+    constexpr T x() const { return (*this)[0]; }
+    constexpr T y() const { return (*this)[1]; }
 
-template<int P, template<int...> class T>
-constexpr Unit<P,T> operator+(Unit<P,T> a)
-{ return a; }
+    constexpr Vec3<T> operator,(T other) const;
+    constexpr Vec4<T> operator,(Vec2<T> other) const;
+};
 
-template<int P, template<int...> class T>
-constexpr Unit<P,T> operator+(Unit<P,T> a, Unit<P,T> b)
-{ return {$(a) + $(b)}; }
+/* A specific class for a vectors with 3 elements */
+template<typename T>
+class Vec3 : public Vector<T,3>
+{
+public:
+    constexpr Vec3(const T(&list)[3]) : Vector<T,3>{list} {}
+    constexpr Vec3(T x = Zero(T{}),
+                   T y = Zero(T{}),
+                   T z = Zero(T{}))
+                   : Vector<T,3>{{x, y, z}} {}
+    constexpr Vec3(Vector<T,2> xy,
+                   T z = Zero(T{}))
+                   : Vector<T,3>{{xy[0], xy[1], z}} {}
+    constexpr Vec3(T x, Vector<T,2> yz)
+                   : Vector<T,3>{{x, yz[0], yz[1]}} {}
+    constexpr Vec3(Vector<T,3> xyz)
+                   : Vector<T,3>{{xyz[0], xyz[1], xyz[2]}} {}
+    constexpr T& x() { return (*this)[0]; }
+    constexpr T& y() { return (*this)[1]; }
+    constexpr T& z() { return (*this)[2]; }
+    constexpr T x() const { return (*this)[0]; }
+    constexpr T y() const { return (*this)[1]; }
+    constexpr T z() const { return (*this)[2]; }
 
-template<int P, template<int...> class T>
-constexpr Unit<P,T> operator-(Unit<P,T> a, Unit<P,T> b)
-{ return {$(a) - $(b)}; }
+    constexpr Vec4<T> operator,(T other) const;
+};
 
-template<int P, template<int...> class T>
-constexpr Unit<P,T> operator*(Real a, Unit<P,T> b)
-{ return {a * $(b)}; }
+/* A specific class for a vectors with 4 elements */
+template<typename T>
+class Vec4 : public Vector<T,4>
+{
+public:
+    constexpr Vec4(const T(&list)[4]) : Vector<T,4>{list} {}
+    constexpr Vec4(T x = Zero(T{}),
+                   T y = Zero(T{}),
+                   T z = Zero(T{}),
+                   T w = Zero(T{}))
+                   : Vector<T,4>{{x, y, z, w}} {}
+    constexpr Vec4(Vector<T,2> xy, T z = Zero(T{}), T w = Zero(T{}))
+                   : Vector<T,4>{{xy[0], xy[1], z, w}} {}
+    constexpr Vec4(Vector<T,2> xy, Vector<T,2> zw)
+                   : Vector<T,4>{{xy[0], xy[1], zw[0], zw[1]}} {}
+    constexpr Vec4(T x, Vector<T,2> yz, T w = Zero(T{}))
+                   : Vector<T,4>{{x, yz[0], yz[1], w}} {}
+    constexpr Vec4(T x, T y, Vector<T,2> zw)
+                   : Vector<T,4>{{x, y, zw[0], zw[1]}} {}
+    constexpr Vec4(T x, Vector<T,3> yzw)
+                   : Vector<T,4>{{x, yzw[0], yzw[1], yzw[2]}} {}
+    constexpr Vec4(Vector<T,3> xyz, T w = Zero(T{}))
+                   : Vector<T,4>{{xyz[0], xyz[1], xyz[2], w}} {}
+    constexpr Vec4(Vector<T,4> xyzw)
+                   : Vector<T,4>{{xyzw[0], xyzw[1], xyzw[2], xyzw[3]}} {}
+    constexpr T& x() { return (*this)[0]; }
+    constexpr T& y() { return (*this)[1]; }
+    constexpr T& z() { return (*this)[2]; }
+    constexpr T& w() { return (*this)[3]; }
+    constexpr T x() const { return (*this)[0]; }
+    constexpr T y() const { return (*this)[1]; }
+    constexpr T z() const { return (*this)[2]; }
+    constexpr T w() const { return (*this)[3]; }
+};
 
-template<int P, template<int...> class T>
-constexpr Unit<P,T> operator*(Unit<P,T> a, Real b)
-{ return {$(a) * b}; }
+template<typename T>
+constexpr Vec3<T> Vec2<T>::operator,(T other) const { return Vec3{*this, other}; }
+template<typename T>
+constexpr Vec4<T> Vec2<T>::operator,(Vec2<T> other) const { return Vec4{*this, other}; }
+template<typename T>
+constexpr Vec4<T> Vec3<T>::operator,(T other) const { return Vec4{*this, other}; }
 
-template<int P, template<int...> class T>
-constexpr Unit<P,T> operator/(Unit<P,T> a, Real b)
-{ return {$(a) / b}; }
+/*
+ * If someone wants to use the word "Vec" instead of specifiying
+ * the number, they can use these functions to create the vector.
+ */
 
-template<int P, template<int...> class T>
-constexpr Unit<-P,T> operator/(Real a, Unit<P,T> b)
-{ return {a / $(b)}; }
+template<typename T> constexpr auto Vec(T x, T y) { return Vec2{x, y}; }
 
-template<int N, int M, template<int...> class T>
-constexpr Unit<N+M,T> operator*(Unit<N,T> a, Unit<M,T> b)
-{ return {$(a) * $(b)}; }
+template<typename T> constexpr auto Vec(T x, T y, T z) { return Vec3{x, y, z}; }
+template<typename T> constexpr auto Vec(Vector<T,2> xy, T z) { return Vec3{xy, z}; }
+template<typename T> constexpr auto Vec(T x, Vector<T,2> yz) { return Vec3{x, yz}; }
 
-template<int N, int M, template<int...> class T>
-constexpr Unit<N-M,T> operator/(Unit<N,T> a, Unit<M,T> b)
-{ return {$(a) / $(b)}; }
+template<typename T> constexpr auto Vec(T x, T y, T z, T w) { return Vec4{x, y, z, w}; }
+template<typename T> constexpr auto Vec(Vector<T,2> xy, T z, T w) { return Vec4{xy, z, w}; }
+template<typename T> constexpr auto Vec(T x, Vector<T,2> yz, T w) { return Vec4{x, yz, w}; }
+template<typename T> constexpr auto Vec(T x, T y, Vector<T,2> zw) { return Vec4{x, y, zw}; }
+template<typename T> constexpr auto Vec(Vector<T,2> xy, Vector<T,2> zw) { return Vec4{xy, zw}; }
+template<typename T> constexpr auto Vec(Vector<T,3> xyz, T w) { return Vec4{xyz, w}; }
+template<typename T> constexpr auto Vec(T x, Vector<T,3> yzw) { return Vec4{x, yzw}; }
 
-template<int N, template<int...> class T>
-constexpr Real operator/(Unit<N,T> a, Unit<N,T> b)
-{ return $(a) / $(b); }
+/* The add operators for vectors */
 
-template<int N, template<int...> class T>
-constexpr bool operator==(Unit<N,T> a, Unit<N,T> b)
-{ return $(a) == $(b); }
+template<typename T, std::uint8_t N>
+constexpr auto operator+(Vector<T,N>& v0, Vector<T,N>& v1)
+{
+    Vector<T,N> result;
+    for (std::uint8_t i = 0 ; i < N ; i++)
+        result[i] = v0[i] + v1[i];
+    return result;
+}
 
-template<int N, template<int...> class T>
-constexpr bool operator!=(Unit<N,T> a, Unit<N,T> b)
-{ return $(a) != $(b); }
+template<typename T, std::uint8_t N>
+constexpr auto operator+(Vector<T,N>&& v0, Vector<T,N>& v1)
+{
+    for (std::uint8_t i = 0 ; i < N ; i++)
+        v0[i] += v1[i];
+    return v0;
+}
 
-template<int N, template<int...> class T>
-constexpr bool operator>(Unit<N,T> a, Unit<N,T> b)
-{ return $(a) > $(b); }
+template<typename T, std::uint8_t N>
+constexpr auto operator+(Vector<T,N>&& v0, Vector<T,N>&& v1)
+{
+    for (std::uint8_t i = 0 ; i < N ; i++)
+        v0[i] += v1[i];
+    return v0;
+}
 
-template<int N, template<int...> class T>
-constexpr bool operator>=(Unit<N,T> a, Unit<N,T> b)
-{ return $(a) >= $(b); }
+template<typename T, std::uint8_t N>
+constexpr auto operator+(Vector<T,N>& v0, Vector<T,N>&& v1)
+{
+    for (std::uint8_t i = 0 ; i < N ; i++)
+        v1[i] += v0[i];
+    return v1;
+}
 
-template<int N, template<int...> class T>
-constexpr bool operator<(Unit<N,T> a, Unit<N,T> b)
-{ return $(a) < $(b); }
+/* The subtract operators for vectors */
 
-template<int N, template<int...> class T>
-constexpr bool operator<=(Unit<N,T> a, Unit<N,T> b)
-{ return $(a) <= $(b); }
+template<typename T, std::uint8_t N>
+constexpr auto operator-(Vector<T,N>& v0, Vector<T,N>& v1)
+{
+    Vector<T,N> result;
+    for (std::uint8_t i = 0 ; i < N ; i++)
+        result[i] = v0[i] - v1[i];
+    return result;
+}
 
-template<int N, template<int...> class T>
-constexpr Unit<N,T> Abs(Unit<N,T> v)
-{ return {Abs($(v))}; }
+template<typename T, std::uint8_t N>
+constexpr auto operator-(Vector<T,N>&& v0, Vector<T,N>& v1)
+{
+    for (std::uint8_t i = 0 ; i < N ; i++)
+        v0[i] -= v1[i];
+    return v0;
+}
 
-template<template<int...> class T>
-constexpr Unit<1,T> Sqrt(Unit<2,T> v)
-{ return {Sqrt($(v))}; }
+template<typename T, std::uint8_t N>
+constexpr auto operator-(Vector<T,N>&& v0, Vector<T,N>&& v1)
+{
+    for (std::uint8_t i = 0 ; i < N ; i++)
+        v0[i] -= v1[i];
+    return v0;
+}
 
-template<template<int...> class T>
-constexpr Unit<2,T> Sqrt(Unit<4,T> v)
-{ return {Sqrt($(v))}; }
+template<typename T, std::uint8_t N>
+constexpr auto operator-(Vector<T,N>& v0, Vector<T,N>&& v1)
+{
+    for (std::uint8_t i = 0 ; i < N ; i++)
+        v1[i] -= v1[i];
+    return v1;
+}
 
-template<template<int...> class T>
-constexpr Unit<3,T> Sqrt(Unit<6,T> v)
-{ return {Sqrt($(v))}; }
+/* The negative operators for vectors */
 
-template<template<int...> class T>
-constexpr Unit<4,T> Sqrt(Unit<8,T> v)
-{ return {Sqrt($(v))}; }
+template<typename T, std::uint8_t N>
+constexpr auto operator-(Vector<T,N>& v)
+{
+    Vector<T,N> result;
+    for (std::uint8_t i = 0 ; i < N ; i++)
+        result[i] = -v[i];
+    return result;
+}
 
-template<int N, template<int...> class T>
-constexpr Unit<N*2,T> Sqr(Unit<N,T> v)
-{ return {Sqr($(v))}; }
+template<typename T, std::uint8_t N>
+constexpr auto operator-(Vector<T,N>&& v)
+{
+    for (std::uint8_t i = 0 ; i < N ; i++)
+        v[i] = -v[i];
+    return v;
+}
 
-template<int N, template<int...> class T>
-constexpr Unit<N*3,T> Cube(Unit<N,T> v)
-{ return {Cube($(v))}; }
+/* The positive operators for vectors */
 
-template<int N, template<int...> class T>
-constexpr Unit<N,T> One(Unit<N,T>& a)
-{ return {One($(a))}; }
+template<typename T, std::uint8_t N>
+constexpr auto operator+(Vector<T,N>& v)
+{
+    return v;
+}
 
-template<int N, template<int...> class T>
-constexpr Unit<N,T> One(Unit<N,T>&& a)
-{ return {One($(a))}; }
+template<typename T, std::uint8_t N>
+constexpr auto operator+(Vector<T,N>&& v)
+{
+    return v;
+}
 
-template<int N, template<int...> class T>
-constexpr Unit<N,T> Zero(Unit<N,T>& a)
-{ return {Zero($(a))}; }
+/* The multiply operators for vectors */
 
-template<int N, template<int...> class T>
-constexpr Unit<N,T> Zero(Unit<N,T>&& a)
-{ return {Zero($(a))}; }
+template<typename T0, typename T1, std::uint8_t N>
+constexpr auto operator*(Vector<T0,N>& v0, Vector<T1,N>& v1)
+{
+    Vector<decltype(std::declval<T0>*std::declval<T1>),N> result;
+    for (std::uint8_t i = 0 ; i < N ; i++)
+        result[i] = v0[i] * v1[0];
+    return result;
+}
 
-template<int N, template<int...> class T>
-std::ostream &operator<<(std::ostream &output, Unit<N,T> obj) {
-    output << obj.toString();
-    return output;
+template<typename T0, typename T1, std::uint8_t N>
+constexpr auto operator*(Vector<T0,N>&& v0, Vector<T1,N>& v1)
+{
+    Vector<decltype(std::declval<T0>*std::declval<T1>),N> result;
+    for (std::uint8_t i = 0 ; i < N ; i++)
+        result[i] = v0[i] * v1[0];
+    return result;
+}
+
+template<typename T0, typename T1, std::uint8_t N>
+constexpr auto operator*(Vector<T0,N>& v0, Vector<T1,N>&& v1)
+{
+    Vector<decltype(std::declval<T0>*std::declval<T1>),N> result;
+    for (std::uint8_t i = 0 ; i < N ; i++)
+        result[i] = v0[i] * v1[0];
+    return result;
+}
+
+template<typename T0, typename T1, std::uint8_t N>
+constexpr auto operator*(Vector<T0,N>&& v0, Vector<T1,N>&& v1)
+{
+    Vector<decltype(std::declval<T0>*std::declval<T1>),N> result;
+    for (std::uint8_t i = 0 ; i < N ; i++)
+        result[i] = v0[i] * v1[0];
+    return result;
+}
+
+/* The divide operators for vectors */
+
+template<typename T0, typename T1, std::uint8_t N>
+constexpr auto operator/(Vector<T0,N>& v0, Vector<T1,N>& v1)
+{
+    Vector<decltype(T0{}/T1{}),N> result;
+    for (std::uint8_t i = 0 ; i < N ; i++)
+        result[i] = v0[i] / v1[0];
+    return result;
+}
+
+template<typename T0, typename T1, std::uint8_t N>
+constexpr auto operator/(Vector<T0,N>&& v0, Vector<T1,N>& v1)
+{
+    Vector<decltype(T0{}/T1{}),N> result;
+    for (std::uint8_t i = 0 ; i < N ; i++)
+        result[i] = v0[i] / v1[0];
+    return result;
+}
+
+template<typename T0, typename T1, std::uint8_t N>
+constexpr auto operator/(Vector<T0,N>& v0, Vector<T1,N>&& v1)
+{
+    Vector<decltype(T0{}/T1{}),N> result;
+    for (std::uint8_t i = 0 ; i < N ; i++)
+        result[i] = v0[i] / v1[0];
+    return result;
+}
+
+template<typename T0, typename T1, std::uint8_t N>
+constexpr auto operator/(Vector<T0,N>&& v0, Vector<T1,N>&& v1)
+{
+    Vector<decltype(T0{}/T1{}),N> result;
+    for (std::uint8_t i = 0 ; i < N ; i++)
+        result[i] = v0[i] / v1[0];
+    return result;
+}
+
+/* The scalar * vector operators */
+
+template<typename T0, typename T1, std::uint8_t N>
+constexpr auto operator*(T0 s, Vector<T1,N>& v)
+{
+    Vector<decltype(T0{}*T1{}),N> result;
+    for (std::uint8_t i = 0 ; i < N ; i++)
+        result[i] = s * v[i];
+    return result;
+}
+
+template<typename T0, typename T1, std::uint8_t N>
+constexpr auto operator*(T0 s, Vector<T1,N>&& v)
+{
+    Vector<decltype(T0{}*T1{}),N> result;
+    for (std::uint8_t i = 0 ; i < N ; i++)
+        result[i] = s * v[i];
+    return result;
+}
+
+template<typename T0, typename T1, std::uint8_t N>
+constexpr auto operator*(Vector<T0,N>& v, T1 s)
+{
+    Vector<decltype(T0{}*T1{}),N> result;
+    for (std::uint8_t i = 0 ; i < N ; i++)
+        result[i] = v[i] * s;
+    return result;
+}
+
+template<typename T0, typename T1, std::uint8_t N>
+constexpr auto operator*(Vector<T0,N>&& v, T1 s)
+{
+    Vector<decltype(T0{}*T1{}),N> result;
+    for (std::uint8_t i = 0 ; i < N ; i++)
+        result[i] = v[i] * s;
+    return result;
+}
+
+/* The vector / scalar operators */
+
+template<typename T0, typename T1, std::uint8_t N>
+constexpr auto operator/(Vector<T0,N>& v, T1 s)
+{
+    Vector<decltype(T0{}/T1{}),N> result;
+    for (std::uint8_t i = 0 ; i < N ; i++)
+        result[i] = v[i] / s;
+    return result;
+}
+
+template<typename T0, typename T1, std::uint8_t N>
+constexpr auto operator/(Vector<T0,N>&& v, T1 s)
+{
+    Vector<decltype(T0{}/T1{}),N> result;
+    for (std::uint8_t i = 0 ; i < N ; i++)
+        result[i] = v[i] / s;
+    return result;
+}
+
+template<typename T, std::uint8_t N>
+constexpr T Hypot(Vector<T,N>& v)
+{
+    auto total = Zero(T{}*T{});
+    for (int i = 0 ; i < N ; i++)
+        total += v[i] * v[i];
+    return Sqrt(total);
+}
+
+template<typename T, std::uint8_t N> constexpr T Hypot(Vector<T,N>&& v) { return Hypot(fwd(v)); }
+
+template<typename T, std::uint8_t N> constexpr T Dist(Vector<T,N>& a, Vector<T,N>& b) { return Hypot(b-a); }
+template<typename T, std::uint8_t N> constexpr T Dist(Vector<T,N>&& a, Vector<T,N>& b) { return Hypot(b-a); }
+template<typename T, std::uint8_t N> constexpr T Dist(Vector<T,N>& a, Vector<T,N>&& b) { return Hypot(b-a); }
+template<typename T, std::uint8_t N> constexpr T Dist(Vector<T,N>&& a, Vector<T,N>&& b) { return Hypot(b-a); }
+
+template<typename T, std::uint8_t N> constexpr Real Dot(Vector<T,N>& a, Vector<T,N>& b)
+{
+    Real result = 0.0;
+    for (std::uint8_t i = 0 ; i < N ; i++)
+        result += (a[i]/One(T{})) * (b[i]/One(T{}));
+    return result;
+}
+
+template<typename T, std::uint8_t N> constexpr Real Dot(Vector<T,N>& a, Vector<T,N>&& b)
+{ return Dot(a, fwd(b)); }
+template<typename T, std::uint8_t N> constexpr Real Dot(Vector<T,N>&& a, Vector<T,N>& b)
+{ return Dot(fwd(a), b); }
+template<typename T, std::uint8_t N> constexpr Real Dot(Vector<T,N>&& a, Vector<T,N>&& b)
+{ return Dot(fwd(a), fwd(b)); }
+
+template<typename T, std::uint8_t N>
+constexpr Vector<Real,N> Vector<T,N>::normalized() const
+{
+    Vector<Real,N> result;
+    auto len = Hypot(*this);
+    for (std::uint8_t i = 0 ; i < N ; i++)
+        result[i] = m_data[i] / len;
+    return result;
 }
 
 } // namespace frogs
 
-/* The macros that helps build classes */
-
-#define DECL_UNIT(Result, P, Sym, Getter, Scale) \
-    static constexpr Real convFrom##Sym = Scale; \
-    constexpr Real Getter() const { \
-        assert(this->order() == P); \
-        return m_value / (convFrom##Sym); }
-
-#define IMPL_UNIT(ClassName, P, Symb) \
-    constexpr Unit<P,ClassName> operator""##Symb(unsigned long long v) \
-    { return {ClassName<P>{v * ClassName<P>::convFrom##Symb}}; } \
-    constexpr Unit<P,ClassName> operator""##Symb(long double v) \
-    { return {ClassName<P>{static_cast<Real>(v * ClassName<P>::convFrom##Symb)}}; }
-
-#define DECL_CONV(Result, P, ClassA, PA, Opr, ClassB, PB) \
-    friend constexpr Unit<P,Result> operator Opr(Unit<PA,ClassA> a, Unit<PB,ClassB> b);
-
-#define IMPL_CONV(Result, P, ClassA, PA, UnitA, Opr, ClassB, PB, UnitB) \
-    constexpr Unit<P,Result> operator Opr(Unit<PA,ClassA> a, Unit<PB,ClassB> b) \
-    { return {$(a).UnitA() Opr $(b).UnitB()}; }
-
-#define DECL_CONV_ADD(Result, P, ClassA, PA, ClassB, PB) \
-    DECL_CONV(Result, P, ClassA, PA, +, ClassB, PB) \
-    DECL_CONV(Result, P, ClassB, PB, +, ClassA, PA)
-
-#define IMPL_CONV_ADD(Result, P, ClassA, PA, UnitA, ClassB, PB, UnitB) \
-    IMPL_CONV(Result, P, ClassA, UnitA, PA, +, ClassB, UnitB, PB) \
-    IMPL_CONV(Result, P, ClassB, UnitB, PB, +, ClassA, UnitA, PA)
-
-#define DECL_CONV_SUB(Result, P, ClassA, PA, ClassB, PB) \
-    DECL_CONV(Result, P, ClassA, PA, -, ClassB, PB) \
-    DECL_CONV(Result, P, ClassB, PA, -, ClassA, PA)
-
-#define IMPL_CONV_SUB(Result, P, ClassA, PA, UnitA, ClassB, PB, UnitB) \
-    IMPL_CONV(Result, P, ClassA, PA, UnitA, -, ClassB, PB, UnitB) \
-    IMPL_CONV(Result, P, ClassB, PB, UnitB, -, ClassA, PA, UnitA)
-
-#define DECL_CONV_MUL(Result, P, ClassA, PA, ClassB, PB) \
-    DECL_CONV(Result, P, ClassA, PA, *, ClassB, PB) \
-    DECL_CONV(Result, P, ClassB, PB, *, ClassA, PA) \
-
-#define IMPL_CONV_MUL(Result, P, ClassA, PA, UnitA, ClassB, PB, UnitB) \
-    IMPL_CONV(Result, P, ClassA, PA, UnitA, *, ClassB, PB, UnitB) \
-    IMPL_CONV(Result, P, ClassB, PB, UnitB, *, ClassA, PA, UnitA) \
-
-#define DECL_CONV_SQR(Result, P, Class, PC) \
-    DECL_CONV(Result, P, Class, PC, *, Class, PC) \
-
-#define IMPL_CONV_SQR(Result, P, Class, PC, Unit) \
-    IMPL_CONV(Result, P, Class, PC, Unit, *, Class, PC, Unit) \
-
-#define DECL_CONV_DIV(Result, P, ClassA, PA, ClassB, PB) \
-    DECL_CONV(Result, P, ClassA, PA, /, ClassB, PB)
-
-#define IMPL_CONV_DIV(Result, P, ClassA, PA, UnitA, ClassB, PB, UnitB) \
-    IMPL_CONV(Result, P, ClassA, PA, UnitA, /, ClassB, PB, UnitB)
-
-#define DECL_CONV_AB_DIV_C(Result, P, ClassA, PA, ClassB, PB, ClassC, PC) \
-    friend constexpr Unit<P,Result> operator/(UnitsMul<Unit<PA,ClassA>,Unit<PB,ClassB>,0>, Unit<PC,ClassC>); \
-    friend constexpr Unit<P,Result> operator/(UnitsMul<Unit<PB,ClassB>,Unit<PA,ClassA>,0>, Unit<PC,ClassC>); \
-    friend constexpr Unit<P,Result> operator*(Unit<PA,ClassA>, UnitsDiv<Unit<PB,ClassB>,Unit<PC,ClassC>,0>); \
-    friend constexpr Unit<P,Result> operator*(Unit<PB,ClassB>, UnitsDiv<Unit<PA,ClassA>,Unit<PC,ClassC>,0>); \
-    friend constexpr Unit<P,Result> operator*(UnitsDiv<Unit<PB,ClassB>,Unit<PC,ClassC>,0>, Unit<PA,ClassA>); \
-    friend constexpr Unit<P,Result> operator*(UnitsDiv<Unit<PA,ClassA>,Unit<PC,ClassC>,0>, Unit<PB,ClassB>);
-
-#define IMPL_CONV_AB_DIV_C(Result, P, ClassA, PA, UnitA, ClassB, PB, UnitB, ClassC, PC, UnitC) \
-    constexpr Unit<P,Result> operator/(UnitsMul<Unit<PA,ClassA>,Unit<PB,ClassB>,0> ab, Unit<PC,ClassC> c) \
-    { return {($(ab.m_a).UnitA() * $(ab.m_b).UnitB()) / $(c).UnitC()}; } \
-    constexpr Unit<P,Result> operator/(UnitsMul<Unit<PB,ClassB>,Unit<PA,ClassA>,0> ab, Unit<PC,ClassC> c) \
-    { return {($(ab.m_a).UnitB() * $(ab.m_b).UnitA()) / $(c).UnitC()}; } \
-    constexpr Unit<P,Result> operator*(Unit<PA,ClassA> a, UnitsDiv<Unit<PB,ClassB>,Unit<PC,ClassC>,0> b_c) \
-    { return {$(a).UnitA() * ($(b_c.m_a).UnitB() / $(b_c.m_b).UnitC())}; } \
-    constexpr Unit<P,Result> operator*(Unit<PB,ClassB> b, UnitsDiv<Unit<PA,ClassA>,Unit<PC,ClassC>,0> a_c) \
-    { return {$(b).UnitB() * ($(a_c.m_a).UnitA() / $(a_c.m_b).UnitC())}; } \
-    constexpr Unit<P,Result> operator*(UnitsDiv<Unit<PB,ClassB>,Unit<PC,ClassC>,0> b_c, Unit<PA,ClassA> a) \
-    { return {($(b_c.m_a).UnitB() / $(b_c.m_b).UnitC()) * $(a).UnitA()}; } \
-    constexpr Unit<P,Result> operator*(UnitsDiv<Unit<PA,ClassA>,Unit<PC,ClassC>,0> a_c, Unit<PB,ClassB> b) \
-    { return {($(a_c.m_a).UnitA() / $(a_c.m_b).UnitC()) * $(b).UnitB()}; }
-
-#define DECL_CLASS(ClassName, String, PublicDecl) \
-template<int P = 1> \
-class ClassName##T { \
-private: \
-    Real m_value; \
-public: \
-    constexpr ClassName##T() : m_value(0.0) {} \
-    constexpr ClassName##T(Real v) : m_value(v) {} \
-    using Self = ClassName##T<P>; \
-    static constexpr auto order() { return P; } \
-    static constexpr Self zero() { return {0.0}; } \
-    static constexpr Self unit() { return {1.0}; } \
-    static constexpr Self max() { return {std::numeric_limits<Real>::max()}; } \
-    static constexpr Self min() { return {std::numeric_limits<Real>::min()}; } \
-    constexpr Self& operator+=(Self a) { m_value += a.m_value; return *this; } \
-    constexpr Self& operator-=(Self a) { m_value -= a.m_value; return *this; } \
-    constexpr Self& operator*=(Real a) { m_value *= a; return *this; } \
-    constexpr Self& operator/=(Real a) { m_value *= a; return *this; } \
-    constexpr Self& operator=(Self a) { m_value = a.m_value; return *this; } \
-    template<int N> friend constexpr ClassName##T<N> operator-(ClassName##T<N> a); \
-    template<int N> friend constexpr ClassName##T<N> operator+(ClassName##T<N> a); \
-    template<int N> friend constexpr ClassName##T<N> operator+(ClassName##T<N> a, ClassName##T<N> b); \
-    template<int N> friend constexpr ClassName##T<N> operator-(ClassName##T<N> a, ClassName##T<N> b); \
-    template<int N> friend constexpr ClassName##T<N> operator*(Real a, ClassName##T<N> b); \
-    template<int N> friend constexpr ClassName##T<N> operator*(ClassName##T<N> a, Real b); \
-    template<int N> friend constexpr ClassName##T<N> operator/(ClassName##T<N> a, Real b); \
-    template<int N> friend constexpr ClassName##T<-N> operator/(Real a, ClassName##T<N> b); \
-    template<int N, int M> friend constexpr ClassName##T<N+M> operator*(ClassName##T<N> a, ClassName##T<M> b); \
-    template<int N, int M> friend constexpr ClassName##T<N-M> operator/(ClassName##T<N> a, ClassName##T<M> b); \
-    template<int N> friend constexpr Real operator/(ClassName##T<N> a, ClassName##T<N> b); \
-    template<int N> friend constexpr bool operator==(ClassName##T<N> a, ClassName##T<N> b); \
-    template<int N> friend constexpr bool operator!=(ClassName##T<N> a, ClassName##T<N> b); \
-    template<int N> friend constexpr bool operator>(ClassName##T<N> a, ClassName##T<N> b); \
-    template<int N> friend constexpr bool operator>=(ClassName##T<N> a, ClassName##T<N> b); \
-    template<int N> friend constexpr bool operator<(ClassName##T<N> a, ClassName##T<N> b); \
-    template<int N> friend constexpr bool operator<=(ClassName##T<N> a, ClassName##T<N> b); \
-    template<int N> friend constexpr ClassName##T<N> Abs(ClassName##T<N> v); \
-    friend constexpr ClassName##T<1> Sqrt(ClassName##T<2> v); \
-    friend constexpr ClassName##T<2> Sqrt(ClassName##T<4> v); \
-    friend constexpr ClassName##T<3> Sqrt(ClassName##T<6> v); \
-    friend constexpr ClassName##T<4> Sqrt(ClassName##T<8> v); \
-    template<int N> friend constexpr ClassName##T<N*2> Sqr(ClassName##T<N> v); \
-    template<int N> friend constexpr ClassName##T<N*3> Cube(ClassName##T<N> v); \
-    template<typename T> friend constexpr auto Diff(T); \
-    Str toString() const { \
-        return conv2str(m_value) + " " #String \
-        + ((P != 1) ? conv2str(P) : Str("")); } \
-    PublicDecl \
-    friend std::ostream &operator<<(std::ostream &output, const ClassName##T obj) { \
-        output << obj.toString(); \
-        return output; \
-    } \
-    template <int N> friend constexpr ClassName##T<N> One(ClassName##T<N>&); \
-    template <int N> friend constexpr ClassName##T<N> One(ClassName##T<N>&&); \
-    template <int N> friend constexpr ClassName##T<N> Zero(ClassName##T<N>&); \
-    template <int N> friend constexpr ClassName##T<N> Zero(ClassName##T<N>&&); \
-};
-
-#define IMPL_CLASS(ClassName) \
-    template<int N> constexpr ClassName##T<N> operator-(ClassName##T<N> a) { return {-a.m_value}; } \
-    template<int N> constexpr ClassName##T<N> operator+(ClassName##T<N> a) { return a; } \
-    template<int N> constexpr ClassName##T<N> operator+(ClassName##T<N> a, ClassName##T<N> b) { return {a.m_value + b.m_value}; } \
-    template<int N> constexpr ClassName##T<N> operator-(ClassName##T<N> a, ClassName##T<N> b) { return {a.m_value - b.m_value}; } \
-    template<int N> constexpr ClassName##T<N> operator*(Real a, ClassName##T<N> b) { return {a * b.m_value}; } \
-    template<int N> constexpr ClassName##T<N> operator*(ClassName##T<N> a, Real b) { return {a.m_value * b}; } \
-    template<int N> constexpr ClassName##T<N> operator/(ClassName##T<N> a, Real b) { return {a.m_value / b}; } \
-    template<int N> constexpr ClassName##T<-N> operator/(Real a, ClassName##T<N> b) { return {a / b.m_value}; } \
-    template<int N, int M> \
-    constexpr ClassName##T<N+M> operator*(ClassName##T<N> a, ClassName##T<M> b) \
-    { return {a.m_value * b.m_value}; } \
-    template<int N, int M> \
-    constexpr ClassName##T<N-M> operator/(ClassName##T<N> a, ClassName##T<M> b) \
-    { return {a.m_value / b.m_value}; } \
-    template<int N> constexpr Real operator/(ClassName##T<N> a, ClassName##T<N> b) { return {a.m_value / b.m_value}; } \
-    template<int N> constexpr bool operator==(ClassName##T<N> a, ClassName##T<N> b) { return {a.m_value == b.m_value}; } \
-    template<int N> constexpr bool operator!=(ClassName##T<N> a, ClassName##T<N> b) { return {a.m_value != b.m_value}; } \
-    template<int N> constexpr bool operator>(ClassName##T<N> a, ClassName##T<N> b) { return {a.m_value > b.m_value}; } \
-    template<int N> constexpr bool operator>=(ClassName##T<N> a, ClassName##T<N> b) { return {a.m_value >= b.m_value}; } \
-    template<int N> constexpr bool operator<(ClassName##T<N> a, ClassName##T<N> b) { return {a.m_value < b.m_value}; } \
-    template<int N> constexpr bool operator<=(ClassName##T<N> a, ClassName##T<N> b) { return {a.m_value <= b.m_value}; } \
-    template<int N> constexpr ClassName##T<N> Abs(ClassName##T<N> v) { return (v.m_value < 0) ? -v : v; } \
-    constexpr ClassName##T<1> Sqrt(ClassName##T<2> v) { return {sqrt(v.m_value)}; } \
-    constexpr ClassName##T<2> Sqrt(ClassName##T<4> v) { return {sqrt(v.m_value)}; } \
-    constexpr ClassName##T<3> Sqrt(ClassName##T<6> v) { return {sqrt(v.m_value)}; } \
-    constexpr ClassName##T<4> Sqrt(ClassName##T<8> v) { return {sqrt(v.m_value)}; } \
-    template<int N> constexpr ClassName##T<N*2> Sqr(ClassName##T<N> v) { return {v.m_value*v.m_value}; } \
-    template<int N> constexpr ClassName##T<N*3> Cube(ClassName##T<N> v) { return {v.m_value*v.m_value*v.m_value}; } \
-    template<int N> constexpr ClassName##T<N> One(ClassName##T<N>&) { return ClassName##T<N>::unit(); } \
-    template<int N> constexpr ClassName##T<N> One(ClassName##T<N>&&) { return ClassName##T<N>::unit(); } \
-    template<int N> constexpr ClassName##T<N> Zero(ClassName##T<N>&) { return ClassName##T<N>::zero(); } \
-    template<int N> constexpr ClassName##T<N> Zero(ClassName##T<N>&&) { return ClassName##T<N>::zero(); }
-
-#define DECL_FWD(ClassName) \
-template<int P> class ClassName##T;
-
-#endif // _FROGS_TYPES_CREATOR_H
+#endif // _FROGS_VECTOR_H
