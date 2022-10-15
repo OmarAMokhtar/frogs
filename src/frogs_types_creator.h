@@ -93,7 +93,7 @@ constexpr Unit<N+M,T> operator*(Unit<N,T> a, Unit<M,T> b)
 { return {$(a) * $(b)}; }
 
 template<int N, int M, template<int...> class T>
-constexpr Unit<N-N,T> operator/(Unit<N,T> a, Unit<M,T> b)
+constexpr Unit<N-M,T> operator/(Unit<N,T> a, Unit<M,T> b)
 { return {$(a) / $(b)}; }
 
 template<int N, template<int...> class T>
