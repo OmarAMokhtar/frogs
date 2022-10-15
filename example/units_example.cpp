@@ -25,15 +25,15 @@ int32_t main()
     cout << "v = " << v << endl;
 
     cout << "Converting them to different units:" << endl;
-    cout << "t in minutes = " << t.toMinutes() << endl;
-    cout << "t in seconds = " << t.toSeconds() << endl;
-    cout << "t in milliseconds = " << t.toMilliseconds() << endl;
-    cout << "d in meters = " << d.toMeters() << endl;
-    cout << "d in inches = " << d.toInches() << endl;
-    cout << "d in miles = " << d.toMiles() << endl;
-    cout << "v in kmph = " << v.toKilometersPerHour() << endl;
-    cout << "v in mps = " << v.toMetersPerSecond() << endl;
-    cout << "v in mph = " << v.toMilesPerHour() << endl;
+    cout << "t in minutes = " << $(t).toMinutes() << endl;
+    cout << "t in seconds = " << $(t).toSeconds() << endl;
+    cout << "t in milliseconds = " << $(t).toMilliseconds() << endl;
+    cout << "d in meters = " << $(d).toMeters() << endl;
+    cout << "d in inches = " << $(d).toInches() << endl;
+    cout << "d in miles = " << $(d).toMiles() << endl;
+    cout << "v in kmph = " << $(v).toKilometersPerHour() << endl;
+    cout << "v in mps = " << $(v).toMetersPerSecond() << endl;
+    cout << "v in mph = " << $(v).toMilesPerHour() << endl;
 
     return 0;
 }
