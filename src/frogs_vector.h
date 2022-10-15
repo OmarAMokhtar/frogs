@@ -64,7 +64,7 @@ public:
         return output;
     }
 
-    constexpr Vector<Real,N> normalized();
+    constexpr Vector<Real,N> normalized() const;
 
     constexpr std::uint8_t size() { return N; }
 };
@@ -88,8 +88,8 @@ public:
     constexpr T x() const { return (*this)[0]; }
     constexpr T y() const { return (*this)[1]; }
 
-    constexpr Vec3<T> operator,(T other);
-    constexpr Vec4<T> operator,(Vec2<T> other);
+    constexpr Vec3<T> operator,(T other) const;
+    constexpr Vec4<T> operator,(Vec2<T> other) const;
 };
 
 /* A specific class for a vectors with 3 elements */
@@ -116,7 +116,7 @@ public:
     constexpr T y() const { return (*this)[1]; }
     constexpr T z() const { return (*this)[2]; }
 
-    constexpr Vec4<T> operator,(T other);
+    constexpr Vec4<T> operator,(T other) const;
 };
 
 /* A specific class for a vectors with 4 elements */
@@ -155,11 +155,11 @@ public:
 };
 
 template<typename T>
-constexpr Vec3<T> Vec2<T>::operator,(T other) { return Vec3{*this, other}; }
+constexpr Vec3<T> Vec2<T>::operator,(T other) const { return Vec3{*this, other}; }
 template<typename T>
-constexpr Vec4<T> Vec2<T>::operator,(Vec2<T> other) { return Vec4{*this, other}; }
+constexpr Vec4<T> Vec2<T>::operator,(Vec2<T> other) const { return Vec4{*this, other}; }
 template<typename T>
-constexpr Vec4<T> Vec3<T>::operator,(T other) { return Vec4{*this, other}; }
+constexpr Vec4<T> Vec3<T>::operator,(T other) const { return Vec4{*this, other}; }
 
 /*
  * If someone wants to use the word "Vec" instead of specifiying
@@ -449,7 +449,7 @@ template<typename T, std::uint8_t N> constexpr Real Dot(Vector<T,N>&& a, Vector<
 { return Dot(fwd(a), fwd(b)); }
 
 template<typename T, std::uint8_t N>
-constexpr Vector<Real,N> Vector<T,N>::normalized()
+constexpr Vector<Real,N> Vector<T,N>::normalized() const
 {
     Vector<Real,N> result;
     auto len = Hypot(*this);
