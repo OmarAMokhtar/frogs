@@ -231,7 +231,7 @@ public:
 
     /* Other overloads for translate */
     void translate(Distance x, Distance y, Distance z)
-    { translate(x.toMeters(), y.toMeters(), z.toMeters()); }
+    { translate($(x).toMeters(), $(y).toMeters(), $(z).toMeters()); }
     void translate(Real x, Real y) { translate(x, y, 0.0); }
     void translate(Distance x, Distance y) { translate(x, y, 0_m); }
     void translate(Vector<Real,2>& v) { translate(v[0], v[1], 0.0); }

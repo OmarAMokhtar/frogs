@@ -28,10 +28,22 @@ inline auto Sqrt(int v) { return sqrt(v); }
 
 constexpr Real One(Real) { return 1.0; }
 constexpr Real Zero(Real) { return 0.0; }
-constexpr Integer One(Integer) { return 1; }
-constexpr Integer Zero(Integer) { return 0; }
+constexpr unsigned char One(unsigned char) { return 1; }
+constexpr unsigned char Zero(unsigned char) { return 0; }
+constexpr char One(char) { return 1; }
+constexpr char Zero(char) { return 0; }
+constexpr unsigned int One(unsigned int) { return 1; }
+constexpr unsigned int Zero(unsigned int) { return 0; }
 constexpr int One(int) { return 1; }
 constexpr int Zero(int) { return 0; }
+constexpr unsigned long long One(unsigned long long) { return 1; }
+constexpr unsigned long long Zero(unsigned long long) { return 0; }
+constexpr long long One(long long) { return 1; }
+constexpr long long Zero(long long) { return 0; }
+constexpr unsigned long One(unsigned long) { return 1; }
+constexpr unsigned long Zero(unsigned long) { return 0; }
+constexpr long One(long) { return 1; }
+constexpr long Zero(long) { return 0; }
 
 inline Str operator+(Str a, Str b)
 {

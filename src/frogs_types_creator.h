@@ -7,6 +7,10 @@
 #include <limits>
 #include <type_traits>
 
+#ifdef QT_VERSION
+# include <QDebug>
+#endif
+
 #include "frogs_primitives.h"
 #include "frogs_vector.h"
 
@@ -36,6 +40,13 @@ public:
     constexpr auto operator,(Vec3<Self> other) { return Vec4{*this, other}; }
 
     Str toString() const { return m_value.toString(); }
+
+#ifdef QT_VERSION
+    friend QDebug operator<<(QDebug d, Self v) {
+        d << v.toString().data();
+        return d;
+    }
+#endif
 
     template<int N, template<int...> class C>
     friend constexpr C<N> $(Unit<N,C> a);
